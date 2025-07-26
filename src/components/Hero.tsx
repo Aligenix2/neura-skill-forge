@@ -54,8 +54,8 @@ const Hero = () => {
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-neura rounded-3xl blur-3xl opacity-20 animate-pulse"></div>
             <img 
-              src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=800&h=600" 
-              alt="AI Robot Technology - Perfect for Young Learners"
+              src="https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&w=800&h=600" 
+              alt="Innovation and Learning - Blue Light Bulb Representing Ideas"
               className="relative rounded-3xl shadow-neura border border-neura-cyan/20 w-full h-auto"
             />
           </div>
