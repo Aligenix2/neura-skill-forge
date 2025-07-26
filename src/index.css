@@ -8,45 +8,45 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 225 42% 8%;
-    --foreground: 210 40% 98%;
+    --background: 0 0% 100%;
+    --foreground: 225 42% 15%;
 
-    --card: 225 35% 12%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 225 42% 15%;
 
-    --popover: 225 35% 12%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 225 42% 15%;
 
-    --primary: 195 85% 55%;
-    --primary-foreground: 225 42% 8%;
+    --primary: 225 42% 15%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 225 35% 15%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 225 42% 15%;
 
-    --muted: 225 35% 15%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
     --accent: 195 85% 55%;
-    --accent-foreground: 225 42% 8%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 225 35% 18%;
-    --input: 225 35% 18%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
     --ring: 195 85% 55%;
 
-    /* NEURA Design System */
-    --neura-navy: 225 42% 8%;
-    --neura-navy-light: 225 35% 12%;
-    --neura-navy-lighter: 225 35% 15%;
+    /* NEURA Light Design System */
+    --neura-navy: 225 42% 15%;
+    --neura-navy-light: 225 35% 25%;
+    --neura-navy-lighter: 225 25% 35%;
     --neura-cyan: 195 85% 55%;
     --neura-cyan-light: 195 85% 70%;
     --neura-purple: 265 85% 65%;
     --neura-gradient-primary: linear-gradient(135deg, hsl(195 85% 55%), hsl(265 85% 65%));
-    --neura-gradient-secondary: linear-gradient(180deg, hsl(225 35% 12%), hsl(225 42% 8%));
-    --neura-glow: 0 0 40px hsl(195 85% 55% / 0.3);
-    --neura-shadow: 0 10px 30px -10px hsl(195 85% 55% / 0.2);
+    --neura-gradient-secondary: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 40% 98%));
+    --neura-glow: 0 0 40px hsl(195 85% 55% / 0.2);
+    --neura-shadow: 0 10px 30px -10px hsl(195 85% 55% / 0.15);
 
     --radius: 0.5rem;
 

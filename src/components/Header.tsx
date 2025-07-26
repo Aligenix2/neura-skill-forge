@@ -3,12 +3,12 @@ import { Brain } from "lucide-react";
 
 const Header = () => {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border shadow-sm">
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-neura rounded-lg flex items-center justify-center">
-              <Brain className="w-5 h-5 text-neura-navy" />
+              <Brain className="w-5 h-5 text-white" />
             </div>
             <span className="text-2xl font-bold bg-gradient-neura bg-clip-text text-transparent">
               NEURA

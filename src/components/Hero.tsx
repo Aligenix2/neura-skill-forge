@@ -8,9 +8,9 @@ const Hero = () => {
       <div className="container mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
-            <div className="inline-flex items-center space-x-2 bg-neura-navy-light rounded-full px-4 py-2 border border-neura-cyan/20">
+            <div className="inline-flex items-center space-x-2 bg-neura-cyan/10 rounded-full px-4 py-2 border border-neura-cyan/20">
               <Sparkles className="w-4 h-4 text-neura-cyan" />
-              <span className="text-sm text-neura-cyan-light">AI-Powered Skill Development</span>
+              <span className="text-sm text-neura-cyan font-medium">AI-Powered Skill Development</span>
             </div>
             
             <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
