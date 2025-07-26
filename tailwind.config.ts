@@ -52,6 +52,14 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				neura: {
+					navy: 'hsl(var(--neura-navy))',
+					'navy-light': 'hsl(var(--neura-navy-light))',
+					'navy-lighter': 'hsl(var(--neura-navy-lighter))',
+					cyan: 'hsl(var(--neura-cyan))',
+					'cyan-light': 'hsl(var(--neura-cyan-light))',
+					purple: 'hsl(var(--neura-purple))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -62,6 +70,14 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				}
+			},
+			backgroundImage: {
+				'gradient-neura': 'var(--neura-gradient-primary)',
+				'gradient-neura-secondary': 'var(--neura-gradient-secondary)',
+			},
+			boxShadow: {
+				'neura-glow': 'var(--neura-glow)',
+				'neura': 'var(--neura-shadow)',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
