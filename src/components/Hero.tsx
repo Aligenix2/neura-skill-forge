@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
-import heroImage from "@/assets/neura-hero.jpg";
+// Using placeholder image suitable for ages 10-18
 
 const Hero = () => {
   return (
@@ -54,9 +54,9 @@ const Hero = () => {
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-neura rounded-3xl blur-3xl opacity-20 animate-pulse"></div>
             <img 
-              src={heroImage} 
-              alt="AI-Powered Learning"
-              className="relative rounded-3xl shadow-neura border border-neura-cyan/20"
+              src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=800&h=600" 
+              alt="AI Robot Technology - Perfect for Young Learners"
+              className="relative rounded-3xl shadow-neura border border-neura-cyan/20 w-full h-auto"
             />
           </div>
         </div>
