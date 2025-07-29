@@ -48,6 +48,7 @@ const Speech = () => {
 
   const startRecording = useCallback(async () => {
     try {
+      console.log("Starting recording...");
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
@@ -64,43 +65,85 @@ const Speech = () => {
         stream.getTracks().forEach(track => track.stop());
       };
 
-      // Initialize speech recognition
+      // Initialize speech recognition with better browser support
       if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
         const recognition = new SpeechRecognition();
+        
         recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = 'en-US';
+        recognition.maxAlternatives = 1;
 
-        recognition.onresult = (event) => {
-          let finalTranscript = '';
+        let finalTranscript = '';
+
+        recognition.onstart = () => {
+          console.log("Speech recognition started");
+        };
+
+        recognition.onresult = (event: any) => {
+          console.log("Speech recognition result:", event);
+          let interimTranscript = '';
+          
           for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            console.log("Transcript piece:", transcript, "isFinal:", event.results[i].isFinal);
+            
             if (event.results[i].isFinal) {
-              finalTranscript += event.results[i][0].transcript;
+              finalTranscript += transcript + ' ';
+            } else {
+              interimTranscript += transcript;
             }
           }
-          if (finalTranscript) {
-            setTranscript(prev => prev + finalTranscript);
-          }
+          
+          // Update transcript state with both final and interim results
+          setTranscript(finalTranscript + interimTranscript);
+          console.log("Current transcript:", finalTranscript + interimTranscript);
+        };
+
+        recognition.onerror = (event: any) => {
+          console.error("Speech recognition error:", event.error);
+          toast({
+            title: "Speech Recognition Error",
+            description: `Error: ${event.error}. Please try again.`,
+            variant: "destructive",
+          });
+        };
+
+        recognition.onend = () => {
+          console.log("Speech recognition ended");
+          console.log("Final transcript:", finalTranscript);
         };
 
         recognitionRef.current = recognition;
         recognition.start();
+      } else {
+        console.warn("Speech recognition not supported");
+        toast({
+          title: "Not Supported",
+          description: "Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari.",
+          variant: "destructive",
+        });
       }
 
       mediaRecorder.start();
       setIsRecording(true);
       setAnalysisState("recording");
+      setTranscript(""); // Clear previous transcript
     } catch (error) {
+      console.error("Recording error:", error);
       toast({
         title: "Error",
-        description: "Could not access microphone. Please check permissions.",
+        description: "Could not access microphone. Please check permissions and try again.",
         variant: "destructive",
       });
     }
   }, [toast]);
 
   const stopRecording = useCallback(() => {
+    console.log("Stopping recording...");
+    console.log("Current transcript before stop:", transcript);
+    
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
@@ -110,18 +153,45 @@ const Speech = () => {
         recognitionRef.current.stop();
       }
 
-      // Simulate processing delay
+      // Give a small delay to ensure final transcript is captured
       setTimeout(() => {
-        analyzeTranscript(transcript);
-      }, 2000);
+        const finalTranscript = transcript.trim();
+        console.log("Final transcript for analysis:", finalTranscript);
+        
+        if (finalTranscript.length === 0) {
+          toast({
+            title: "No speech detected",
+            description: "Please try recording again and speak more clearly. Make sure your microphone is working.",
+            variant: "destructive",
+          });
+          setAnalysisState("idle");
+          return;
+        }
+        
+        analyzeTranscript(finalTranscript);
+      }, 1000);
     }
-  }, [isRecording, transcript]);
+  }, [isRecording, transcript, toast]);
 
   const analyzeTranscript = (text: string) => {
+    console.log("Analyzing transcript:", text);
+    console.log("Transcript length:", text.length);
+    
     if (!text || text.trim().length === 0) {
+      console.log("Empty transcript detected");
       toast({
         title: "No speech detected",
-        description: "Please try recording again and speak clearly.",
+        description: "We couldn't detect any speech. Please ensure your microphone is working and try speaking more clearly.",
+        variant: "destructive",
+      });
+      setAnalysisState("idle");
+      return;
+    }
+
+    if (text.trim().length < 10) {
+      toast({
+        title: "Speech too short",
+        description: "Please speak for at least a few sentences to get meaningful analysis.",
         variant: "destructive",
       });
       setAnalysisState("idle");

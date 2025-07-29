@@ -104,8 +104,11 @@ export const SpeechRecording = ({
 
           <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
             <p className="text-yellow-200 text-sm">
-              <strong>Tip:</strong> Speak clearly and at a normal pace. The AI will analyze your vocabulary, 
-              fluency, confidence, clarity, and grammar to provide detailed feedback.
+              <strong>Tips for best results:</strong><br/>
+              • Speak clearly and at a normal pace<br/>
+              • Make sure your microphone is unmuted and working<br/>
+              • Speak for at least 30 seconds for better analysis<br/>
+              • Find a quiet environment to reduce background noise
             </p>
           </div>
         </CardContent>
