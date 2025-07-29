@@ -20,7 +20,7 @@ export const SpeechModeSelection = ({ onModeSelect }: SpeechModeSelectionProps) 
             <CardTitle className="text-2xl font-semibold text-white">Story Telling</CardTitle>
           </CardHeader>
           <CardContent className="text-center">
-            <p className="text-gray-200 mb-8 leading-relaxed">
+            <p className="text-black mb-8 leading-relaxed font-medium">
               Share personal experiences and stories about common life situations. 
               Practice narrative skills and creative expression.
             </p>
@@ -39,7 +39,7 @@ export const SpeechModeSelection = ({ onModeSelect }: SpeechModeSelectionProps) 
             <CardTitle className="text-2xl font-semibold text-white">Opinion Sharing</CardTitle>
           </CardHeader>
           <CardContent className="text-center">
-            <p className="text-gray-200 mb-8 leading-relaxed">
+            <p className="text-black mb-8 leading-relaxed font-medium">
               Express your thoughts and opinions on various topics. 
               Develop persuasive speaking and critical thinking skills.
             </p>
