@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Mic, Code, Lightbulb, LogOut } from "lucide-react";
+import { Mic, Code, Lightbulb, LogOut, Zap } from "lucide-react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 
 const Dashboard = () => {
@@ -41,8 +41,11 @@ const Dashboard = () => {
       {/* Header */}
       <header className="border-b border-border p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <Link to="/" className="text-2xl font-bold hover:opacity-80 transition-opacity">
-            <span className="bg-gradient-neura bg-clip-text text-transparent">NEURA</span>
+          <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+            <div className="w-8 h-8 bg-gradient-neura rounded-lg flex items-center justify-center">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-2xl font-bold bg-gradient-neura bg-clip-text text-transparent">NEURA</span>
           </Link>
           <Button variant="ghost" onClick={handleSignOut} className="group">
             <LogOut className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
@@ -70,15 +73,17 @@ const Dashboard = () => {
               <Card 
                 key={option.title}
                 onClick={() => navigate(option.route)}
-                className="cursor-pointer transition-all duration-300 bg-card/50 border border-border hover:bg-card hover:shadow-neura-glow hover:border-primary/20 group"
+                className="cursor-pointer transition-all duration-300 bg-card/50 border border-border hover:bg-card hover:shadow-neura-glow hover:border-primary/20 group h-full flex flex-col"
               >
-                <CardContent className="p-8 text-center space-y-4">
-                  <div className={`w-16 h-16 rounded-full ${option.iconColor} mx-auto flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                    <IconComponent className="w-8 h-8 text-white" />
+                <CardContent className="p-8 text-center space-y-4 flex-1 flex flex-col justify-between">
+                  <div className="space-y-4">
+                    <div className={`w-16 h-16 rounded-full ${option.iconColor} mx-auto flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                      <IconComponent className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-foreground">{option.title}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{option.description}</p>
                   </div>
-                  <h3 className="text-xl font-semibold text-foreground">{option.title}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{option.description}</p>
-                  <Button variant="neura-outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+                  <Button variant="neura-outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 mt-4">
                     Start Learning
                   </Button>
                 </CardContent>
