@@ -118,32 +118,37 @@ const Speech = () => {
   }, [isRecording, transcript]);
 
   const analyzeTranscript = (text: string) => {
-    // Custom analysis algorithm
-    const words = text.toLowerCase().split(/\s+/).filter(word => word.length > 0);
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    if (!text || text.trim().length === 0) {
+      toast({
+        title: "No speech detected",
+        description: "Please try recording again and speak clearly.",
+        variant: "destructive",
+      });
+      setAnalysisState("idle");
+      return;
+    }
+
+    // Enhanced analysis algorithm
+    const cleanText = text.trim();
+    const words = cleanText.toLowerCase().split(/\s+/).filter(word => word.length > 0);
+    const sentences = cleanText.split(/[.!?]+/).filter(s => s.trim().length > 0);
     
-    // Vocabulary analysis
-    const uniqueWords = new Set(words);
-    const vocabularyScore = Math.min(10, Math.round((uniqueWords.size / words.length) * 20));
+    // Vocabulary Analysis (0-10)
+    const vocabularyScore = analyzeVocabulary(words);
     
-    // Fluency analysis (words per sentence)
-    const avgWordsPerSentence = words.length / Math.max(sentences.length, 1);
-    const fluencyScore = Math.round(Math.min(10, avgWordsPerSentence / 2));
+    // Fluency Analysis (0-10)
+    const fluencyScore = analyzeFluency(words, sentences, cleanText);
     
-    // Grammar analysis (simple heuristics)
-    const grammarIssues = findGrammarIssues(text);
-    const grammarScore = Math.max(1, Math.round(10 - (grammarIssues.length * 2)));
+    // Confidence Analysis (0-10)
+    const confidenceScore = analyzeConfidence(words, cleanText);
     
-    // Clarity analysis (sentence length variety)
-    const sentenceLengths = sentences.map(s => s.trim().split(/\s+/).length);
-    const clarityScore = Math.round(Math.min(10, 8 + (sentenceLengths.length > 1 ? 2 : -2)));
+    // Clarity Analysis (0-10)
+    const clarityScore = analyzeClarity(cleanText, sentences);
     
-    // Confidence analysis (use of filler words)
-    const fillerWords = ['um', 'uh', 'like', 'you know', 'basically'];
-    const fillerCount = words.filter(word => fillerWords.includes(word)).length;
-    const confidenceScore = Math.max(1, Math.round(10 - (fillerCount * 1.5)));
+    // Grammar Analysis (0-10)
+    const { grammarScore, grammarErrors } = analyzeGrammar(cleanText);
     
-    const overall = Math.round((vocabularyScore + fluencyScore + grammarScore + clarityScore + confidenceScore) / 5);
+    const overall = Math.round((vocabularyScore + fluencyScore + confidenceScore + clarityScore + grammarScore) / 5);
     
     const result: SpeechAnalysisResult = {
       vocabulary: vocabularyScore,
@@ -152,9 +157,9 @@ const Speech = () => {
       clarity: clarityScore,
       grammar: grammarScore,
       overall,
-      transcript: text,
+      transcript: cleanText,
       feedback: {
-        errors: grammarIssues,
+        errors: grammarErrors,
         strengths: generateStrengths(vocabularyScore, fluencyScore, confidenceScore, clarityScore, grammarScore),
         improvements: generateImprovements(vocabularyScore, fluencyScore, confidenceScore, clarityScore, grammarScore)
       }
@@ -164,36 +169,176 @@ const Speech = () => {
     setAnalysisState("complete");
   };
 
-  const findGrammarIssues = (text: string) => {
-    const issues = [];
-    const sentences = text.split(/[.!?]+/);
+  const analyzeVocabulary = (words: string[]) => {
+    const uniqueWords = new Set(words);
+    const totalWords = words.length;
     
+    // Advanced vocabulary metrics
+    const complexWords = words.filter(word => word.length > 6).length;
+    const commonWords = words.filter(word => ['the', 'and', 'but', 'or', 'so', 'yet', 'for', 'nor', 'a', 'an', 'in', 'on', 'at', 'to', 'of', 'is', 'are', 'was', 'were'].includes(word)).length;
+    
+    const lexicalDiversity = uniqueWords.size / totalWords;
+    const complexityRatio = complexWords / totalWords;
+    const simplicityPenalty = commonWords / totalWords;
+    
+    let score = 0;
+    score += lexicalDiversity * 40; // 40% weight for diversity
+    score += complexityRatio * 35; // 35% weight for complexity
+    score += Math.max(0, (1 - simplicityPenalty)) * 25; // 25% weight for avoiding too many simple words
+    
+    return Math.round(Math.min(10, Math.max(1, score * 10)));
+  };
+
+  const analyzeFluency = (words: string[], sentences: string[], text: string) => {
+    const avgWordsPerSentence = words.length / Math.max(sentences.length, 1);
+    const pauseWords = words.filter(word => ['um', 'uh', 'er', 'ah', 'like', 'you know', 'basically', 'actually', 'literally'].includes(word)).length;
+    const repetitions = findRepetitions(words);
+    
+    let score = 0;
+    
+    // Optimal words per sentence (12-18 is ideal)
+    if (avgWordsPerSentence >= 12 && avgWordsPerSentence <= 18) {
+      score += 4;
+    } else if (avgWordsPerSentence >= 8 && avgWordsPerSentence <= 25) {
+      score += 2;
+    }
+    
+    // Penalize excessive pauses
+    const pauseRatio = pauseWords / words.length;
+    score += Math.max(0, 3 - (pauseRatio * 30));
+    
+    // Penalize repetitions
+    score += Math.max(0, 3 - repetitions);
+    
+    return Math.round(Math.min(10, Math.max(1, score)));
+  };
+
+  const analyzeConfidence = (words: string[], text: string) => {
+    const uncertaintyWords = words.filter(word => ['maybe', 'perhaps', 'probably', 'might', 'could', 'possibly', 'uncertain', 'unsure', 'think', 'guess'].includes(word)).length;
+    const fillerWords = words.filter(word => ['um', 'uh', 'er', 'ah', 'like', 'you know'].includes(word)).length;
+    const hedgingPhrases = (text.match(/I think|I guess|I suppose|kind of|sort of/gi) || []).length;
+    
+    let score = 10;
+    
+    // Penalize uncertainty markers
+    score -= (uncertaintyWords / words.length) * 20;
+    score -= (fillerWords / words.length) * 25;
+    score -= hedgingPhrases * 0.5;
+    
+    // Reward confident language patterns
+    const assertiveWords = words.filter(word => ['definitely', 'certainly', 'absolutely', 'clearly', 'obviously', 'undoubtedly'].includes(word)).length;
+    score += (assertiveWords / words.length) * 15;
+    
+    return Math.round(Math.min(10, Math.max(1, score)));
+  };
+
+  const analyzeClarity = (text: string, sentences: string[]) => {
+    let score = 10;
+    
+    // Check for run-on sentences (over 30 words)
+    const longSentences = sentences.filter(s => s.trim().split(/\s+/).length > 30).length;
+    score -= longSentences * 1.5;
+    
+    // Check for very short sentences (under 5 words)
+    const shortSentences = sentences.filter(s => s.trim().split(/\s+/).length < 5).length;
+    score -= shortSentences * 0.5;
+    
+    // Check for unclear transitions
+    const transitionWords = (text.match(/however|therefore|furthermore|moreover|consequently|meanwhile|nevertheless/gi) || []).length;
+    score += Math.min(2, transitionWords * 0.5);
+    
+    // Penalize excessive comma splices
+    const commaSplices = (text.match(/,\s*[a-z]/g) || []).length;
+    score -= commaSplices * 0.2;
+    
+    return Math.round(Math.min(10, Math.max(1, score)));
+  };
+
+  const analyzeGrammar = (text: string) => {
+    const errors = [];
+    let score = 10;
+    
+    // Check capitalization at sentence start
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
     sentences.forEach((sentence, index) => {
       const trimmed = sentence.trim();
-      if (trimmed.length > 0) {
-        // Check for capitalization
-        if (trimmed[0] !== trimmed[0].toUpperCase()) {
-          issues.push({
-            text: trimmed.substring(0, 10) + "...",
-            type: "grammar" as const,
-            suggestion: "Sentences should start with a capital letter",
-            position: [0, 10] as [number, number]
-          });
-        }
-        
-        // Check for double spaces
-        if (trimmed.includes('  ')) {
-          issues.push({
-            text: "double spaces",
-            type: "clarity" as const,
-            suggestion: "Use single spaces between words",
-            position: [0, 5] as [number, number]
-          });
-        }
+      if (trimmed.length > 0 && trimmed[0] !== trimmed[0].toUpperCase()) {
+        errors.push({
+          text: trimmed.substring(0, Math.min(15, trimmed.length)) + "...",
+          type: "grammar" as const,
+          suggestion: "Sentences should start with a capital letter",
+          position: [0, 15] as [number, number]
+        });
+        score -= 0.5;
       }
     });
     
-    return issues.slice(0, 5); // Limit to 5 issues
+    // Check subject-verb disagreement patterns
+    const disagreementPatterns = [
+      /\b(they|we|you)\s+(was)\b/gi,
+      /\b(he|she|it)\s+(were)\b/gi,
+      /\b(I)\s+(are|is)\b/gi
+    ];
+    
+    disagreementPatterns.forEach(pattern => {
+      const matches = text.match(pattern);
+      if (matches) {
+        matches.forEach(match => {
+          errors.push({
+            text: match,
+            type: "grammar" as const,
+            suggestion: "Check subject-verb agreement",
+            position: [0, match.length] as [number, number]
+          });
+          score -= 1;
+        });
+      }
+    });
+    
+    // Check for double negatives
+    const doubleNegatives = text.match(/\b(don't|doesn't|didn't|won't|can't|isn't|aren't|wasn't|weren't)\s+\w*\s+(no|nothing|nobody|never|none)\b/gi);
+    if (doubleNegatives) {
+      doubleNegatives.forEach(match => {
+        errors.push({
+          text: match,
+          type: "grammar" as const,
+          suggestion: "Avoid double negatives for clearer meaning",
+          position: [0, match.length] as [number, number]
+        });
+        score -= 1;
+      });
+    }
+    
+    // Check for incomplete sentences
+    const incompletePatterns = /\b(because|since|although|though|while|if)\s+[^.!?]*$/gi;
+    const incompletes = text.match(incompletePatterns);
+    if (incompletes) {
+      incompletes.forEach(match => {
+        errors.push({
+          text: match.substring(0, 20) + "...",
+          type: "grammar" as const,
+          suggestion: "Complete the sentence with a main clause",
+          position: [0, 20] as [number, number]
+        });
+        score -= 1.5;
+      });
+    }
+    
+    return {
+      grammarScore: Math.round(Math.min(10, Math.max(1, score))),
+      grammarErrors: errors.slice(0, 8) // Limit to most critical errors
+    };
+  };
+
+  const findRepetitions = (words: string[]) => {
+    const wordCounts = {};
+    words.forEach(word => {
+      if (word.length > 3) { // Only count significant words
+        wordCounts[word] = (wordCounts[word] || 0) + 1;
+      }
+    });
+    
+    return Object.values(wordCounts).filter((count: number) => count > 2).length;
   };
 
   const generateStrengths = (vocab: number, fluency: number, confidence: number, clarity: number, grammar: number) => {

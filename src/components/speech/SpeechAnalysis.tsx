@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Play, Pause, Volume2 } from "lucide-react";
+import { Play, Pause, Volume2, TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
 import { useState, useRef } from "react";
 import { SpeechAnalysisResult } from "@/pages/Speech";
+import { SpeechMetricsChart } from "./SpeechMetricsChart";
+import { SpeechScorePieChart } from "./SpeechScorePieChart";
 
 interface SpeechAnalysisProps {
   result: SpeechAnalysisResult;
@@ -31,10 +32,13 @@ export const SpeechAnalysis = ({ result, audioUrl }: SpeechAnalysisProps) => {
     return "text-red-400";
   };
 
-  const getProgressColor = (score: number) => {
-    if (score >= 8) return "bg-green-500";
-    if (score >= 6) return "bg-yellow-500";
-    return "bg-red-500";
+  const getScoreDescription = (score: number) => {
+    if (score >= 9) return "Excellent";
+    if (score >= 8) return "Very Good";
+    if (score >= 7) return "Good";
+    if (score >= 6) return "Fair";
+    if (score >= 5) return "Needs Improvement";
+    return "Poor";
   };
 
   const highlightErrors = (text: string, errors: SpeechAnalysisResult['feedback']['errors']) => {
@@ -56,28 +60,59 @@ export const SpeechAnalysis = ({ result, audioUrl }: SpeechAnalysisProps) => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      {/* Overall Score */}
-      <Card className="bg-black/40 border-neura-cyan/30 text-center">
-        <CardHeader>
-          <CardTitle className="text-3xl text-white">Analysis Complete!</CardTitle>
+    <div className="max-w-7xl mx-auto space-y-8">
+      {/* Overall Score with Performance Indicator */}
+      <Card className="bg-gradient-to-br from-black/60 to-black/40 border-2 border-neura-cyan/40 backdrop-blur-sm">
+        <CardHeader className="text-center">
+          <CardTitle className="text-3xl text-white mb-4 flex items-center justify-center gap-3">
+            <TrendingUp className="w-8 h-8 text-neura-cyan" />
+            Analysis Complete!
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center space-y-4">
-            <div className="w-32 h-32 rounded-full bg-gradient-neura flex items-center justify-center">
-              <span className="text-4xl font-bold text-white">{result.overall}/10</span>
+          <div className="flex flex-col items-center space-y-6">
+            <div className="relative">
+              <div className="w-40 h-40 rounded-full bg-gradient-neura flex items-center justify-center shadow-neura-glow">
+                <div className="text-center">
+                  <span className="text-5xl font-bold text-white">{result.overall}</span>
+                  <div className="text-white/80 text-sm">out of 10</div>
+                </div>
+              </div>
+              <div className="absolute -top-2 -right-2">
+                {result.overall >= 8 ? (
+                  <CheckCircle className="w-8 h-8 text-green-400" />
+                ) : result.overall >= 6 ? (
+                  <AlertTriangle className="w-8 h-8 text-yellow-400" />
+                ) : (
+                  <AlertTriangle className="w-8 h-8 text-red-400" />
+                )}
+              </div>
             </div>
-            <p className="text-xl text-muted-foreground">Overall Speech Score</p>
+            <div className="text-center">
+              <p className={`text-2xl font-semibold ${getScoreColor(result.overall)}`}>
+                {getScoreDescription(result.overall)}
+              </p>
+              <p className="text-muted-foreground mt-2">Speech Performance Level</p>
+            </div>
           </div>
         </CardContent>
       </Card>
+      {/* Score Visualization */}
+      <SpeechScorePieChart 
+        vocabulary={result.vocabulary}
+        fluency={result.fluency}
+        confidence={result.confidence}
+        clarity={result.clarity}
+        grammar={result.grammar}
+        overall={result.overall}
+      />
 
       {/* Audio Playback */}
       {audioUrl && (
         <Card className="bg-black/40 border-neura-cyan/30">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <Volume2 className="w-5 h-5" />
+              <Volume2 className="w-5 h-5 text-neura-cyan" />
               Your Recording
             </CardTitle>
           </CardHeader>
@@ -87,7 +122,7 @@ export const SpeechAnalysis = ({ result, audioUrl }: SpeechAnalysisProps) => {
                 onClick={togglePlayback}
                 variant="neura"
                 size="lg"
-                className="rounded-full w-16 h-16"
+                className="rounded-full w-16 h-16 hover:scale-105 transition-transform"
               >
                 {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
               </Button>
@@ -106,144 +141,141 @@ export const SpeechAnalysis = ({ result, audioUrl }: SpeechAnalysisProps) => {
         </Card>
       )}
 
-      {/* Detailed Scores */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[
-          { label: "Vocabulary", score: result.vocabulary, icon: "📚" },
-          { label: "Fluency", score: result.fluency, icon: "🗣️" },
-          { label: "Confidence", score: result.confidence, icon: "💪" },
-          { label: "Clarity", score: result.clarity, icon: "🔍" },
-          { label: "Grammar", score: result.grammar, icon: "📝" }
-        ].map((metric) => (
-          <Card key={metric.label} className="bg-black/40 border-neura-cyan/30">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-white flex items-center gap-2">
-                <span className="text-2xl">{metric.icon}</span>
-                {metric.label}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className={`text-2xl font-bold ${getScoreColor(metric.score)}`}>
-                    {metric.score}/10
-                  </span>
-                </div>
-                <Progress 
-                  value={metric.score * 10} 
-                  className="h-2"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      {/* Detailed Metrics */}
+      <div>
+        <h3 className="text-2xl font-bold text-white mb-6 text-center">Detailed Performance Metrics</h3>
+        <SpeechMetricsChart 
+          vocabulary={result.vocabulary}
+          fluency={result.fluency}
+          confidence={result.confidence}
+          clarity={result.clarity}
+          grammar={result.grammar}
+        />
       </div>
 
-      {/* Transcript with Errors */}
+      {/* Enhanced Transcript with Error Highlighting */}
       <Card className="bg-black/40 border-neura-cyan/30">
         <CardHeader>
-          <CardTitle className="text-white">Speech Transcript</CardTitle>
+          <CardTitle className="text-white flex items-center gap-2">
+            <Volume2 className="w-5 h-5 text-neura-cyan" />
+            Speech Transcript & Error Analysis
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="bg-black/30 rounded-lg p-4">
+          <div className="bg-gradient-to-br from-black/50 to-black/30 rounded-xl p-6 border border-neura-cyan/20">
             <p 
-              className="text-white leading-relaxed"
+              className="text-white leading-relaxed text-lg"
               dangerouslySetInnerHTML={{ 
                 __html: highlightErrors(result.transcript, result.feedback.errors) 
               }}
             />
           </div>
           {result.feedback.errors.length > 0 && (
-            <div className="mt-4 space-y-2">
-              <h4 className="text-sm font-medium text-muted-foreground">Color Legend:</h4>
-              <div className="flex flex-wrap gap-4 text-xs">
-                <span className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-red-500/30 border-b-2 border-red-500"></div>
-                  Grammar
-                </span>
-                <span className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-blue-500/30 border-b-2 border-blue-500"></div>
-                  Vocabulary
-                </span>
-                <span className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-yellow-500/30 border-b-2 border-yellow-500"></div>
-                  Fluency
-                </span>
-                <span className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-purple-500/30 border-b-2 border-purple-500"></div>
-                  Clarity
-                </span>
+            <div className="mt-6 p-4 bg-gradient-to-r from-yellow-500/10 to-red-500/10 rounded-lg border border-yellow-500/30">
+              <h4 className="text-lg font-semibold text-yellow-400 mb-3 flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5" />
+                Error Legend
+              </h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-red-500/30 border-b-2 border-red-500 rounded"></div>
+                  <span className="text-white">Grammar</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-blue-500/30 border-b-2 border-blue-500 rounded"></div>
+                  <span className="text-white">Vocabulary</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-yellow-500/30 border-b-2 border-yellow-500 rounded"></div>
+                  <span className="text-white">Fluency</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-purple-500/30 border-b-2 border-purple-500 rounded"></div>
+                  <span className="text-white">Clarity</span>
+                </div>
               </div>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Detailed Feedback */}
-      <div className="grid md:grid-cols-2 gap-6">
+      {/* Professional Feedback Section */}
+      <div className="grid md:grid-cols-2 gap-8">
         {/* Strengths */}
-        <Card className="bg-black/40 border-green-500/30">
+        <Card className="bg-gradient-to-br from-green-500/20 to-green-600/10 border-2 border-green-500/40 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-green-400 flex items-center gap-2">
-              ✅ Strengths
+            <CardTitle className="text-green-400 flex items-center gap-3 text-xl">
+              <CheckCircle className="w-6 h-6" />
+              Key Strengths
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2">
+            <div className="space-y-3">
               {result.feedback.strengths.map((strength, index) => (
-                <li key={index} className="text-white flex items-start gap-2">
-                  <span className="text-green-400 mt-1">•</span>
-                  {strength}
-                </li>
+                <div key={index} className="flex items-start gap-3 p-3 bg-green-500/10 rounded-lg">
+                  <div className="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></div>
+                  <span className="text-white font-medium">{strength}</span>
+                </div>
               ))}
-            </ul>
+            </div>
           </CardContent>
         </Card>
 
         {/* Areas for Improvement */}
-        <Card className="bg-black/40 border-yellow-500/30">
+        <Card className="bg-gradient-to-br from-yellow-500/20 to-orange-500/10 border-2 border-yellow-500/40 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-yellow-400 flex items-center gap-2">
-              💡 Areas for Improvement
+            <CardTitle className="text-yellow-400 flex items-center gap-3 text-xl">
+              <TrendingUp className="w-6 h-6" />
+              Growth Opportunities
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2">
+            <div className="space-y-3">
               {result.feedback.improvements.map((improvement, index) => (
-                <li key={index} className="text-white flex items-start gap-2">
-                  <span className="text-yellow-400 mt-1">•</span>
-                  {improvement}
-                </li>
+                <div key={index} className="flex items-start gap-3 p-3 bg-yellow-500/10 rounded-lg">
+                  <div className="w-2 h-2 bg-yellow-400 rounded-full mt-2 flex-shrink-0"></div>
+                  <span className="text-white font-medium">{improvement}</span>
+                </div>
               ))}
-            </ul>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Specific Errors */}
+      {/* Detailed Error Analysis */}
       {result.feedback.errors.length > 0 && (
-        <Card className="bg-black/40 border-red-500/30">
+        <Card className="bg-gradient-to-br from-red-500/20 to-red-600/10 border-2 border-red-500/40 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-red-400 flex items-center gap-2">
-              🔍 Specific Issues Found
+            <CardTitle className="text-red-400 flex items-center gap-3 text-xl">
+              <AlertTriangle className="w-6 h-6" />
+              Specific Issues & Suggestions ({result.feedback.errors.length} found)
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="grid gap-4">
               {result.feedback.errors.map((error, index) => (
-                <div key={index} className="bg-black/30 rounded-lg p-4 border-l-4 border-red-500/50">
-                  <div className="flex items-start justify-between mb-2">
-                    <span className="text-red-400 font-medium capitalize">{error.type} Issue</span>
+                <div key={index} className="bg-gradient-to-r from-black/50 to-black/30 rounded-xl p-4 border-l-4 border-red-500/70">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 bg-red-500/20 text-red-400 text-xs font-semibold rounded-full uppercase tracking-wide">
+                        {error.type} Error
+                      </span>
+                      <span className="text-xs text-muted-foreground">Issue #{index + 1}</span>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-white">
-                      <span className="text-muted-foreground">Found: </span>
-                      <span className="bg-red-500/20 px-2 py-1 rounded">"{error.text}"</span>
-                    </p>
-                    <p className="text-muted-foreground">
-                      <span className="font-medium">Suggestion: </span>
-                      {error.suggestion}
-                    </p>
+                  <div className="space-y-3">
+                    <div>
+                      <span className="text-sm text-muted-foreground">Problematic Text:</span>
+                      <div className="mt-1 p-2 bg-red-500/10 rounded border border-red-500/30">
+                        <span className="text-white font-mono">"{error.text}"</span>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-sm text-muted-foreground">Professional Suggestion:</span>
+                      <p className="mt-1 text-white bg-green-500/10 p-3 rounded border border-green-500/30">
+                        {error.suggestion}
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}
