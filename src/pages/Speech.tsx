@@ -444,28 +444,35 @@ const Speech = () => {
   return (
     <div className="min-h-screen bg-gradient-neura-secondary">
       {/* Header */}
-      <div className="bg-gradient-to-r from-black/90 to-black/70 backdrop-blur-lg border-b border-neura-cyan/20">
-        <div className="container mx-auto px-6 py-6">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border shadow-sm">
+        <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-gradient-neura rounded-xl flex items-center justify-center shadow-neura-glow">
-                <Zap className="w-6 h-6 text-white" />
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-neura rounded-lg flex items-center justify-center">
+                <Zap className="w-5 h-5 text-white" />
               </div>
-              <span className="text-3xl font-bold bg-gradient-neura bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-neura bg-clip-text text-transparent">
                 NEURA
               </span>
             </div>
-            <Link to="/dashboard">
-              <Button variant="neura-outline" size="lg" className="hover:shadow-neura-glow transition-all">
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                Back to Dashboard
-              </Button>
-            </Link>
+            
+            <nav className="hidden md:flex items-center space-x-8">
+              <span className="text-foreground/60">Speech Analysis</span>
+            </nav>
+
+            <div className="flex items-center space-x-4">
+              <Link to="/dashboard">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Dashboard
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-6 py-8 pt-24">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold bg-gradient-neura bg-clip-text text-transparent mb-4">
             Speech Analysis
