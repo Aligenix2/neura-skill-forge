@@ -4,11 +4,31 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Mic, Lightbulb, Code, ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: ""
+  });
+  const navigate = useNavigate();
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value
+    });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // No real verification - just navigate to dashboard with username
+    const username = isSignUp ? formData.username : formData.email.split('@')[0];
+    navigate("/dashboard", { state: { username } });
+  };
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -24,7 +44,7 @@ const Auth = () => {
             </p>
           </div>
 
-          <div className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {isSignUp && (
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
@@ -33,6 +53,9 @@ const Auth = () => {
                   type="text" 
                   placeholder="Choose a username"
                   className="h-12"
+                  value={formData.username}
+                  onChange={handleInputChange}
+                  required
                 />
               </div>
             )}
@@ -44,6 +67,9 @@ const Auth = () => {
                 type="email" 
                 placeholder="Enter your email address"
                 className="h-12"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
               />
             </div>
             
@@ -54,13 +80,16 @@ const Auth = () => {
                 type="password" 
                 placeholder="Enter your password"
                 className="h-12"
+                value={formData.password}
+                onChange={handleInputChange}
+                required
               />
             </div>
             
-            <Button variant="neura" className="w-full h-12">
+            <Button type="submit" variant="neura" className="w-full h-12">
               {isSignUp ? "Create Account" : "Sign In"}
             </Button>
-          </div>
+          </form>
 
           <div className="text-center text-sm">
             <span className="text-muted-foreground">
