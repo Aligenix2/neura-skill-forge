@@ -58,7 +58,8 @@ export default {
 					'navy-lighter': 'hsl(var(--neura-navy-lighter))',
 					cyan: 'hsl(var(--neura-cyan))',
 					'cyan-light': 'hsl(var(--neura-cyan-light))',
-					purple: 'hsl(var(--neura-purple))'
+					purple: 'hsl(var(--neura-purple))',
+					pink: 'hsl(var(--neura-pink))'
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
