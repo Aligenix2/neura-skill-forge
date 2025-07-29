@@ -14,8 +14,8 @@ const Auth = () => {
     <div className="min-h-screen bg-background flex">
       {/* Left Side - Auth Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
-        <div className="w-full max-w-md space-y-6">
-          <div className="text-center space-y-4">
+        <div className="w-full max-w-md space-y-4">
+          <div className="text-center space-y-2">
             <h1 className="text-3xl font-bold">
               {isSignUp ? "Join" : "Welcome to"} <span className="bg-gradient-neura bg-clip-text text-transparent">NEURA</span>
             </h1>
