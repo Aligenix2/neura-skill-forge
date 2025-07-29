@@ -9,6 +9,7 @@ import ComingSoon from "./pages/ComingSoon";
 import ComingSoonSignedIn from "./pages/ComingSoonSignedIn";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import Speech from "./pages/Speech";
 
 const queryClient = new QueryClient();
 
@@ -24,7 +25,7 @@ const App = () => (
           <Route path="/coming-soon-signed-in" element={<ComingSoonSignedIn />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/speech" element={<ComingSoonSignedIn />} />
+          <Route path="/speech" element={<Speech />} />
           <Route path="/coding" element={<ComingSoonSignedIn />} />
           <Route path="/entrepreneurship" element={<ComingSoonSignedIn />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
