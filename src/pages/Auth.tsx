@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Mic, Lightbulb, Code, ArrowLeft } from "lucide-react";
@@ -14,36 +15,50 @@ const Auth = () => {
       {/* Left Side - Auth Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="w-full max-w-md space-y-6">
-          <div className="text-center space-y-2">
+          <div className="text-center space-y-4">
             <h1 className="text-3xl font-bold">
-              Try <span className="bg-gradient-neura bg-clip-text text-transparent">NEURA</span> for free
+              {isSignUp ? "Join" : "Welcome to"} <span className="bg-gradient-neura bg-clip-text text-transparent">NEURA</span>
             </h1>
+            <p className="text-muted-foreground">
+              {isSignUp ? "Start your AI-powered learning journey" : "Sign in to continue your learning"}
+            </p>
           </div>
 
-          <div className="space-y-4">
-            <Button variant="outline" className="w-full h-12 text-left justify-start">
-              <div className="w-5 h-5 bg-red-500 rounded mr-3"></div>
-              Continue with Google
-            </Button>
+          <div className="space-y-6">
+            {isSignUp && (
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input 
+                  id="username"
+                  type="text" 
+                  placeholder="Choose a username"
+                  className="h-12"
+                />
+              </div>
+            )}
             
-            <Button variant="outline" className="w-full h-12 text-left justify-start">
-              <div className="w-5 h-5 bg-blue-500 rounded mr-3"></div>
-              Continue with Microsoft
-            </Button>
-          </div>
-
-          <div className="text-center text-sm text-muted-foreground">
-            Sign up with work email
-          </div>
-
-          <div className="space-y-4">
-            <Input 
-              type="email" 
-              placeholder="Enter your work email"
-              className="h-12"
-            />
-            <Button variant="secondary" className="w-full h-12">
-              Next
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input 
+                id="email"
+                type="email" 
+                placeholder="Enter your email address"
+                className="h-12"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input 
+                id="password"
+                type="password" 
+                placeholder="Enter your password"
+                className="h-12"
+              />
+            </div>
+            
+            <Button variant="neura" className="w-full h-12">
+              {isSignUp ? "Create Account" : "Sign In"}
             </Button>
           </div>
 
@@ -52,25 +67,22 @@ const Auth = () => {
               {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
             </span>
             <button 
-              className="text-neura-cyan hover:underline"
+              className="text-neura-cyan hover:underline font-medium"
               onClick={() => setIsSignUp(!isSignUp)}
             >
               {isSignUp ? "Sign in" : "Sign up"}
             </button>
           </div>
 
-          <div className="text-xs text-muted-foreground text-center space-y-1">
-            <p>
-              By signing up, you agree to our{" "}
-              <a href="#" className="text-neura-cyan hover:underline">Terms of Service</a>,{" "}
-              <a href="#" className="text-neura-cyan hover:underline">Copyright Policy</a>,{" "}
-              <a href="#" className="text-neura-cyan hover:underline">Cookie Preferences</a>,
-            </p>
-            <p>
-              and acknowledge you've read our{" "}
-              <a href="#" className="text-neura-cyan hover:underline">Privacy Policy</a>.
-            </p>
-          </div>
+          {isSignUp && (
+            <div className="text-xs text-muted-foreground text-center space-y-1">
+              <p>
+                By signing up, you agree to our{" "}
+                <a href="#" className="text-neura-cyan hover:underline">Terms of Service</a> and{" "}
+                <a href="#" className="text-neura-cyan hover:underline">Privacy Policy</a>.
+              </p>
+            </div>
+          )}
 
           <Link to="/">
             <Button variant="ghost" size="sm" className="group">
@@ -84,28 +96,27 @@ const Auth = () => {
       {/* Right Side - Visual */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-neura items-center justify-center p-8">
         <div className="relative">
-          {/* Central Circle with Microphone */}
-          <div className="w-64 h-64 rounded-full bg-white flex items-center justify-center relative">
-            <div className="w-32 h-32 rounded-full bg-neura-cyan/10 flex items-center justify-center">
-              <Mic className="w-16 h-16 text-neura-cyan" />
+          {/* Three Main Icons in Triangle Formation */}
+          <div className="relative w-80 h-80 flex items-center justify-center">
+            {/* Speech/Microphone - Top */}
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center">
+              <Mic className="w-10 h-10 text-neura-cyan" />
             </div>
-          </div>
-
-          {/* Floating Icons */}
-          <div className="absolute -top-4 -right-4 w-16 h-16 rounded-full bg-white shadow-lg flex items-center justify-center">
-            <Lightbulb className="w-8 h-8 text-neura-cyan" />
-          </div>
-          
-          <div className="absolute -bottom-4 -left-4 w-16 h-16 rounded-full bg-white shadow-lg flex items-center justify-center">
-            <Code className="w-8 h-8 text-neura-cyan" />
-          </div>
-          
-          <div className="absolute top-1/2 -left-8 transform -translate-y-1/2 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center">
-            <div className="w-3 h-3 rounded-full bg-neura-cyan"></div>
-          </div>
-          
-          <div className="absolute top-1/4 -right-8 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center">
-            <div className="w-3 h-3 rounded-full bg-neura-cyan"></div>
+            
+            {/* Coding - Bottom Left */}
+            <div className="absolute bottom-0 left-0 w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center">
+              <Code className="w-10 h-10 text-neura-cyan" />
+            </div>
+            
+            {/* Entrepreneurship - Bottom Right */}
+            <div className="absolute bottom-0 right-0 w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center">
+              <Lightbulb className="w-10 h-10 text-neura-cyan" />
+            </div>
+            
+            {/* Central NEURA Logo/Circle */}
+            <div className="w-32 h-32 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center">
+              <span className="text-2xl font-bold text-white">NEURA</span>
+            </div>
           </div>
         </div>
       </div>
