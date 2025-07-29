@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mic, Code, Lightbulb, LogOut } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -10,22 +10,25 @@ const Dashboard = () => {
 
   const learningOptions = [
     {
-      title: "Speech",
+      title: "Speech Development",
       icon: Mic,
-      description: "Improve your communication skills",
-      color: "hover:bg-neura-cyan/10 hover:border-neura-cyan"
+      description: "AI-powered speech analysis with vocal range, tone, and confidence detection.",
+      route: "/speech",
+      iconColor: "bg-neura-cyan"
     },
     {
-      title: "Coding",
+      title: "Coding Skills",
       icon: Code,
-      description: "Master programming languages",
-      color: "hover:bg-neura-purple/10 hover:border-neura-purple"
+      description: "Interactive coding challenges and personalized learning paths.",
+      route: "/coming-soon",
+      iconColor: "bg-neura-purple"
     },
     {
       title: "Entrepreneurship",
       icon: Lightbulb,
-      description: "Develop business acumen",
-      color: "hover:bg-neura-pink/10 hover:border-neura-pink"
+      description: "Business acumen development with real-world case studies.",
+      route: "/coming-soon",
+      iconColor: "bg-neura-pink"
     }
   ];
 
@@ -38,9 +41,9 @@ const Dashboard = () => {
       {/* Header */}
       <header className="border-b border-border p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">
+          <Link to="/" className="text-2xl font-bold hover:opacity-80 transition-opacity">
             <span className="bg-gradient-neura bg-clip-text text-transparent">NEURA</span>
-          </h1>
+          </Link>
           <Button variant="ghost" onClick={handleSignOut} className="group">
             <LogOut className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
             Sign Out
@@ -66,15 +69,16 @@ const Dashboard = () => {
             return (
               <Card 
                 key={option.title}
-                className={`cursor-pointer transition-all duration-300 border-2 ${option.color} hover:shadow-lg`}
+                onClick={() => navigate(option.route)}
+                className="cursor-pointer transition-all duration-300 bg-card/50 border border-border hover:bg-card hover:shadow-neura-glow hover:border-primary/20 group"
               >
                 <CardContent className="p-8 text-center space-y-4">
-                  <div className="w-16 h-16 rounded-full bg-gradient-neura mx-auto flex items-center justify-center">
+                  <div className={`w-16 h-16 rounded-full ${option.iconColor} mx-auto flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
                     <IconComponent className="w-8 h-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold">{option.title}</h3>
-                  <p className="text-muted-foreground text-sm">{option.description}</p>
-                  <Button variant="neura-outline" className="w-full">
+                  <h3 className="text-xl font-semibold text-foreground">{option.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{option.description}</p>
+                  <Button variant="neura-outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
                     Start Learning
                   </Button>
                 </CardContent>
