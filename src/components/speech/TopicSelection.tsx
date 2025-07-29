@@ -59,66 +59,75 @@ export const TopicSelection = ({ mode, onTopicSelect, onBack }: TopicSelectionPr
   };
 
   const getDifficultyColor = (index: number) => {
-    if (index === 0) return "text-green-400";
-    if (index === 1 || index === 2) return "text-yellow-400";
-    return "text-red-400";
+    if (index === 0) return "text-green-500";
+    if (index === 1 || index === 2) return "text-yellow-500";
+    return "text-orange-500";
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <Button variant="neura-outline" onClick={onBack}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Mode Selection
-        </Button>
-        <Button variant="ghost" onClick={generateRandomTopics} className="text-neura-cyan hover:text-neura-cyan/80">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Generate New Topics
-        </Button>
-      </div>
+    <section className="pt-16 pb-16 min-h-screen bg-gradient-neura-secondary">
+      <div className="container mx-auto px-6">
+        <div className="flex items-center justify-between mb-12">
+          <Button variant="neura-outline" onClick={onBack} size="lg">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Mode Selection
+          </Button>
+          <Button variant="ghost" onClick={generateRandomTopics} className="text-neura-cyan hover:text-neura-cyan/80 hover:bg-neura-cyan/10">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Generate New Topics
+          </Button>
+        </div>
 
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold bg-gradient-neura bg-clip-text text-transparent mb-2">
-          Choose Your {mode === "storytelling" ? "Story Topic" : "Opinion Topic"}
-        </h2>
-        <p className="text-muted-foreground">
-          {mode === "storytelling" 
-            ? "Select a personal experience to share"
-            : "Pick a statement to express your opinion about"
-          }
-        </p>
-      </div>
+        <div className="text-center mb-12">
+          <h1 className="text-4xl lg:text-5xl font-bold leading-tight mb-6">
+            Choose Your <span className="bg-gradient-neura bg-clip-text text-transparent">
+              {mode === "storytelling" ? "Story Topic" : "Opinion Topic"}
+            </span>
+          </h1>
+          <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+            {mode === "storytelling" 
+              ? "Select a personal experience to share and practice your storytelling skills"
+              : "Pick a statement to express your opinion about and develop your persuasive speaking"
+            }
+          </p>
+        </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        {topics.map((topic, index) => (
-          <Card 
-            key={index}
-            className="bg-black/40 border-neura-cyan/30 hover:border-neura-cyan/60 transition-all duration-300 cursor-pointer group h-full"
-            onClick={() => onTopicSelect(topic)}
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-neura-cyan">
-                  Topic {index + 1}
-                </span>
-                <span className={`text-xs font-medium ${getDifficultyColor(index)}`}>
-                  {getDifficultyLabel(index)}
-                </span>
-              </div>
-              <CardTitle className="text-lg text-white leading-relaxed">
-                {mode === "opinion" && "\""}
-                {topic}
-                {mode === "opinion" && "\""}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <Button variant="neura-outline" className="w-full group-hover:bg-neura-cyan group-hover:text-white transition-all">
-                Select This Topic
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+        <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+          {topics.map((topic, index) => (
+            <Card 
+              key={index}
+              className="relative bg-card/80 backdrop-blur-sm border-2 border-neura-cyan/20 hover:border-neura-cyan/40 hover:shadow-neura-glow transition-all duration-300 cursor-pointer group h-full overflow-hidden"
+              onClick={() => onTopicSelect(topic)}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-neura-cyan/5 to-transparent"></div>
+              <CardHeader className="relative pb-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="inline-flex items-center space-x-2 bg-neura-cyan/10 rounded-full px-3 py-1 border border-neura-cyan/20">
+                    <span className="text-sm font-medium text-neura-cyan">
+                      Topic {index + 1}
+                    </span>
+                  </div>
+                  <div className="inline-flex items-center space-x-2 bg-background/50 rounded-full px-3 py-1 border">
+                    <span className={`text-xs font-medium ${getDifficultyColor(index)}`}>
+                      {getDifficultyLabel(index)}
+                    </span>
+                  </div>
+                </div>
+                <CardTitle className="text-lg text-card-foreground leading-relaxed">
+                  {mode === "opinion" && "\""}
+                  {topic}
+                  {mode === "opinion" && "\""}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="relative pt-0">
+                <Button variant="neura-outline" className="w-full group-hover:bg-neura-cyan group-hover:text-white group-hover:border-neura-cyan transition-all">
+                  Select This Topic
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
-    </div>
+    </section>
   );
 };
