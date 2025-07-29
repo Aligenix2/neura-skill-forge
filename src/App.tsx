@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ComingSoon from "./pages/ComingSoon";
+import ComingSoonSignedIn from "./pages/ComingSoonSignedIn";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 
@@ -20,9 +21,12 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/coming-soon" element={<ComingSoon />} />
+          <Route path="/coming-soon-signed-in" element={<ComingSoonSignedIn />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/speech" element={<ComingSoon />} />
+          <Route path="/speech" element={<ComingSoonSignedIn />} />
+          <Route path="/coding" element={<ComingSoonSignedIn />} />
+          <Route path="/entrepreneurship" element={<ComingSoonSignedIn />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

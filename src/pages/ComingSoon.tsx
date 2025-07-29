@@ -4,14 +4,14 @@ import { Link } from "react-router-dom";
 
 const ComingSoon = () => {
   return (
-    <div className="min-h-screen bg-gradient-neura-secondary flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-neura-secondary flex items-center justify-center py-16">
       <div className="container mx-auto px-6 text-center">
-        <div className="max-w-2xl mx-auto space-y-8">
-          <div className="space-y-4">
-            <h1 className="text-6xl font-bold bg-gradient-neura bg-clip-text text-transparent">
+        <div className="max-w-2xl mx-auto space-y-12">
+          <div className="space-y-6">
+            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-neura bg-clip-text text-transparent">
               Coming Soon
             </h1>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto">
               We're working hard to bring you an amazing demo experience. 
               Stay tuned for exciting updates!
             </p>
