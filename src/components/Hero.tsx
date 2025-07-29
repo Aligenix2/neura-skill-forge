@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 import rocketImage from "@/assets/rocket-3d.png";
 
 const Hero = () => {
@@ -23,13 +24,17 @@ const Hero = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button variant="neura" size="lg" className="group">
-                Start Your Speech Journey
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-              <Button variant="neura-outline" size="lg">
-                Watch Demo
-              </Button>
+              <Link to="/auth">
+                <Button variant="neura" size="lg" className="group">
+                  Start Your Speech Journey
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+              <Link to="/coming-soon">
+                <Button variant="neura-outline" size="lg">
+                  Watch Demo
+                </Button>
+              </Link>
             </div>
             
             <div className="flex items-center space-x-8 text-sm text-muted-foreground">
