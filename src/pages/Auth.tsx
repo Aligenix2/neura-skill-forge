@@ -97,25 +97,20 @@ const Auth = () => {
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-neura items-center justify-center p-8">
         <div className="relative">
           {/* Three Main Icons in Triangle Formation */}
-          <div className="relative w-80 h-80 flex items-center justify-center">
+          <div className="relative w-80 h-80 flex flex-col items-center justify-center space-y-8">
             {/* Speech/Microphone - Top */}
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center">
+            <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center">
               <Mic className="w-10 h-10 text-neura-cyan" />
             </div>
             
-            {/* Coding - Bottom Left */}
-            <div className="absolute bottom-0 left-0 w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center">
+            {/* Coding - Middle */}
+            <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center">
               <Code className="w-10 h-10 text-neura-cyan" />
             </div>
             
-            {/* Entrepreneurship - Bottom Right */}
-            <div className="absolute bottom-0 right-0 w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center">
+            {/* Entrepreneurship - Bottom */}
+            <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center">
               <Lightbulb className="w-10 h-10 text-neura-cyan" />
-            </div>
-            
-            {/* Central NEURA Logo/Circle */}
-            <div className="w-32 h-32 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center">
-              <span className="text-2xl font-bold text-white">NEURA</span>
             </div>
           </div>
         </div>
