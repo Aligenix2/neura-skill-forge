@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Mic, MicOff, Play, Pause, RotateCcw } from "lucide-react";
+import { ArrowLeft, Mic, MicOff, Play, Pause, RotateCcw, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SpeechModeSelection } from "@/components/speech/SpeechModeSelection";
 import { TopicSelection } from "@/components/speech/TopicSelection";
@@ -234,7 +234,7 @@ const Speech = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 bg-gradient-neura rounded-xl flex items-center justify-center shadow-neura-glow">
-                <div className="w-5 h-5 bg-white rounded-sm"></div>
+                <Zap className="w-6 h-6 text-white" />
               </div>
               <span className="text-3xl font-bold bg-gradient-neura bg-clip-text text-transparent">
                 NEURA
