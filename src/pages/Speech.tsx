@@ -8,10 +8,8 @@ import { TopicSelection } from "@/components/speech/TopicSelection";
 import { SpeechRecording } from "@/components/speech/SpeechRecording";
 import { SpeechAnalysis } from "@/components/speech/SpeechAnalysis";
 import { useToast } from "@/hooks/use-toast";
-
 export type SpeechMode = "storytelling" | "opinion" | null;
 export type AnalysisState = "idle" | "recording" | "processing" | "complete";
-
 export interface SpeechAnalysisResult {
   vocabulary: number;
   fluency: number;
@@ -31,7 +29,6 @@ export interface SpeechAnalysisResult {
     improvements: string[];
   };
 }
-
 const Speech = () => {
   const [mode, setMode] = useState<SpeechMode>(null);
   const [selectedTopic, setSelectedTopic] = useState<string>("");
@@ -40,26 +37,28 @@ const Speech = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string>("");
   const [transcript, setTranscript] = useState<string>("");
-  
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recognitionRef = useRef<any>(null);
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const startRecording = useCallback(async () => {
     try {
       console.log("Starting recording...");
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true
+      });
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (event) => {
+      mediaRecorder.ondataavailable = event => {
         audioChunksRef.current.push(event.data);
       };
-
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: 'audio/wav'
+        });
         const url = URL.createObjectURL(audioBlob);
         setAudioUrl(url);
         stream.getTracks().forEach(track => track.stop());
@@ -69,52 +68,43 @@ const Speech = () => {
       if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
         const recognition = new SpeechRecognition();
-        
         recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = 'en-US';
         recognition.maxAlternatives = 1;
-
         let finalTranscript = '';
-
         recognition.onstart = () => {
           console.log("Speech recognition started");
         };
-
         recognition.onresult = (event: any) => {
           console.log("Speech recognition result:", event);
           let interimTranscript = '';
-          
           for (let i = event.resultIndex; i < event.results.length; i++) {
             const transcript = event.results[i][0].transcript;
             console.log("Transcript piece:", transcript, "isFinal:", event.results[i].isFinal);
-            
             if (event.results[i].isFinal) {
               finalTranscript += transcript + ' ';
             } else {
               interimTranscript += transcript;
             }
           }
-          
+
           // Update transcript state with both final and interim results
           setTranscript(finalTranscript + interimTranscript);
           console.log("Current transcript:", finalTranscript + interimTranscript);
         };
-
         recognition.onerror = (event: any) => {
           console.error("Speech recognition error:", event.error);
           toast({
             title: "Speech Recognition Error",
             description: `Error: ${event.error}. Please try again.`,
-            variant: "destructive",
+            variant: "destructive"
           });
         };
-
         recognition.onend = () => {
           console.log("Speech recognition ended");
           console.log("Final transcript:", finalTranscript);
         };
-
         recognitionRef.current = recognition;
         recognition.start();
       } else {
@@ -122,10 +112,9 @@ const Speech = () => {
         toast({
           title: "Not Supported",
           description: "Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari.",
-          variant: "destructive",
+          variant: "destructive"
         });
       }
-
       mediaRecorder.start();
       setIsRecording(true);
       setAnalysisState("recording");
@@ -135,20 +124,17 @@ const Speech = () => {
       toast({
         title: "Error",
         description: "Could not access microphone. Please check permissions and try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   }, [toast]);
-
   const stopRecording = useCallback(() => {
     console.log("Stopping recording...");
     console.log("Current transcript before stop:", transcript);
-    
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       setAnalysisState("processing");
-      
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
@@ -157,42 +143,37 @@ const Speech = () => {
       setTimeout(() => {
         const finalTranscript = transcript.trim();
         console.log("Final transcript for analysis:", finalTranscript);
-        
         if (finalTranscript.length === 0) {
           toast({
             title: "No speech detected",
             description: "Please try recording again and speak more clearly. Make sure your microphone is working.",
-            variant: "destructive",
+            variant: "destructive"
           });
           setAnalysisState("idle");
           return;
         }
-        
         analyzeTranscript(finalTranscript);
       }, 1000);
     }
   }, [isRecording, transcript, toast]);
-
   const analyzeTranscript = (text: string) => {
     console.log("Analyzing transcript:", text);
     console.log("Transcript length:", text.length);
-    
     if (!text || text.trim().length === 0) {
       console.log("Empty transcript detected");
       toast({
         title: "No speech detected",
         description: "We couldn't detect any speech. Please ensure your microphone is working and try speaking more clearly.",
-        variant: "destructive",
+        variant: "destructive"
       });
       setAnalysisState("idle");
       return;
     }
-
     if (text.trim().length < 10) {
       toast({
         title: "Speech too short",
         description: "Please speak for at least a few sentences to get meaningful analysis.",
-        variant: "destructive",
+        variant: "destructive"
       });
       setAnalysisState("idle");
       return;
@@ -202,24 +183,25 @@ const Speech = () => {
     const cleanText = text.trim();
     const words = cleanText.toLowerCase().split(/\s+/).filter(word => word.length > 0);
     const sentences = cleanText.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    
+
     // Vocabulary Analysis (0-10)
     const vocabularyScore = analyzeVocabulary(words);
-    
+
     // Fluency Analysis (0-10)
     const fluencyScore = analyzeFluency(words, sentences, cleanText);
-    
+
     // Confidence Analysis (0-10)
     const confidenceScore = analyzeConfidence(words, cleanText);
-    
+
     // Clarity Analysis (0-10)
     const clarityScore = analyzeClarity(cleanText, sentences);
-    
+
     // Grammar Analysis (0-10)
-    const { grammarScore, grammarErrors } = analyzeGrammar(cleanText);
-    
+    const {
+      grammarScore,
+      grammarErrors
+    } = analyzeGrammar(cleanText);
     const overall = Math.round((vocabularyScore + fluencyScore + confidenceScore + clarityScore + grammarScore) / 5);
-    
     const result: SpeechAnalysisResult = {
       vocabulary: vocabularyScore,
       fluency: fluencyScore,
@@ -234,100 +216,87 @@ const Speech = () => {
         improvements: generateImprovements(vocabularyScore, fluencyScore, confidenceScore, clarityScore, grammarScore)
       }
     };
-    
     setAnalysisResult(result);
     setAnalysisState("complete");
   };
-
   const analyzeVocabulary = (words: string[]) => {
     const uniqueWords = new Set(words);
     const totalWords = words.length;
-    
+
     // Advanced vocabulary metrics
     const complexWords = words.filter(word => word.length > 6).length;
     const commonWords = words.filter(word => ['the', 'and', 'but', 'or', 'so', 'yet', 'for', 'nor', 'a', 'an', 'in', 'on', 'at', 'to', 'of', 'is', 'are', 'was', 'were'].includes(word)).length;
-    
     const lexicalDiversity = uniqueWords.size / totalWords;
     const complexityRatio = complexWords / totalWords;
     const simplicityPenalty = commonWords / totalWords;
-    
     let score = 0;
     score += lexicalDiversity * 40; // 40% weight for diversity
     score += complexityRatio * 35; // 35% weight for complexity
-    score += Math.max(0, (1 - simplicityPenalty)) * 25; // 25% weight for avoiding too many simple words
-    
+    score += Math.max(0, 1 - simplicityPenalty) * 25; // 25% weight for avoiding too many simple words
+
     return Math.round(Math.min(10, Math.max(1, score * 10)));
   };
-
   const analyzeFluency = (words: string[], sentences: string[], text: string) => {
     const avgWordsPerSentence = words.length / Math.max(sentences.length, 1);
     const pauseWords = words.filter(word => ['um', 'uh', 'er', 'ah', 'like', 'you know', 'basically', 'actually', 'literally'].includes(word)).length;
     const repetitions = findRepetitions(words);
-    
     let score = 0;
-    
+
     // Optimal words per sentence (12-18 is ideal)
     if (avgWordsPerSentence >= 12 && avgWordsPerSentence <= 18) {
       score += 4;
     } else if (avgWordsPerSentence >= 8 && avgWordsPerSentence <= 25) {
       score += 2;
     }
-    
+
     // Penalize excessive pauses
     const pauseRatio = pauseWords / words.length;
-    score += Math.max(0, 3 - (pauseRatio * 30));
-    
+    score += Math.max(0, 3 - pauseRatio * 30);
+
     // Penalize repetitions
     score += Math.max(0, 3 - repetitions);
-    
     return Math.round(Math.min(10, Math.max(1, score)));
   };
-
   const analyzeConfidence = (words: string[], text: string) => {
     const uncertaintyWords = words.filter(word => ['maybe', 'perhaps', 'probably', 'might', 'could', 'possibly', 'uncertain', 'unsure', 'think', 'guess'].includes(word)).length;
     const fillerWords = words.filter(word => ['um', 'uh', 'er', 'ah', 'like', 'you know'].includes(word)).length;
     const hedgingPhrases = (text.match(/I think|I guess|I suppose|kind of|sort of/gi) || []).length;
-    
     let score = 10;
-    
+
     // Penalize uncertainty markers
-    score -= (uncertaintyWords / words.length) * 20;
-    score -= (fillerWords / words.length) * 25;
+    score -= uncertaintyWords / words.length * 20;
+    score -= fillerWords / words.length * 25;
     score -= hedgingPhrases * 0.5;
-    
+
     // Reward confident language patterns
     const assertiveWords = words.filter(word => ['definitely', 'certainly', 'absolutely', 'clearly', 'obviously', 'undoubtedly'].includes(word)).length;
-    score += (assertiveWords / words.length) * 15;
-    
+    score += assertiveWords / words.length * 15;
     return Math.round(Math.min(10, Math.max(1, score)));
   };
-
   const analyzeClarity = (text: string, sentences: string[]) => {
     let score = 10;
-    
+
     // Check for run-on sentences (over 30 words)
     const longSentences = sentences.filter(s => s.trim().split(/\s+/).length > 30).length;
     score -= longSentences * 1.5;
-    
+
     // Check for very short sentences (under 5 words)
     const shortSentences = sentences.filter(s => s.trim().split(/\s+/).length < 5).length;
     score -= shortSentences * 0.5;
-    
+
     // Check for unclear transitions
     const transitionWords = (text.match(/however|therefore|furthermore|moreover|consequently|meanwhile|nevertheless/gi) || []).length;
     score += Math.min(2, transitionWords * 0.5);
-    
+
     // Penalize excessive comma splices
     const commaSplices = (text.match(/,\s*[a-z]/g) || []).length;
     score -= commaSplices * 0.2;
-    
     return Math.round(Math.min(10, Math.max(1, score)));
   };
-
   const analyzeGrammar = (text: string) => {
     const errors = [];
     let score = 10;
-    
+
     // Check capitalization at sentence start
     const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
     sentences.forEach((sentence, index) => {
@@ -342,14 +311,9 @@ const Speech = () => {
         score -= 0.5;
       }
     });
-    
+
     // Check subject-verb disagreement patterns
-    const disagreementPatterns = [
-      /\b(they|we|you)\s+(was)\b/gi,
-      /\b(he|she|it)\s+(were)\b/gi,
-      /\b(I)\s+(are|is)\b/gi
-    ];
-    
+    const disagreementPatterns = [/\b(they|we|you)\s+(was)\b/gi, /\b(he|she|it)\s+(were)\b/gi, /\b(I)\s+(are|is)\b/gi];
     disagreementPatterns.forEach(pattern => {
       const matches = text.match(pattern);
       if (matches) {
@@ -364,7 +328,7 @@ const Speech = () => {
         });
       }
     });
-    
+
     // Check for double negatives
     const doubleNegatives = text.match(/\b(don't|doesn't|didn't|won't|can't|isn't|aren't|wasn't|weren't)\s+\w*\s+(no|nothing|nobody|never|none)\b/gi);
     if (doubleNegatives) {
@@ -378,7 +342,7 @@ const Speech = () => {
         score -= 1;
       });
     }
-    
+
     // Check for incomplete sentences
     const incompletePatterns = /\b(because|since|although|though|while|if)\s+[^.!?]*$/gi;
     const incompletes = text.match(incompletePatterns);
@@ -393,24 +357,21 @@ const Speech = () => {
         score -= 1.5;
       });
     }
-    
     return {
       grammarScore: Math.round(Math.min(10, Math.max(1, score))),
       grammarErrors: errors.slice(0, 8) // Limit to most critical errors
     };
   };
-
   const findRepetitions = (words: string[]) => {
     const wordCounts = {};
     words.forEach(word => {
-      if (word.length > 3) { // Only count significant words
+      if (word.length > 3) {
+        // Only count significant words
         wordCounts[word] = (wordCounts[word] || 0) + 1;
       }
     });
-    
     return Object.values(wordCounts).filter((count: number) => count > 2).length;
   };
-
   const generateStrengths = (vocab: number, fluency: number, confidence: number, clarity: number, grammar: number) => {
     const strengths = [];
     if (vocab >= 7) strengths.push("Rich vocabulary usage");
@@ -420,7 +381,6 @@ const Speech = () => {
     if (grammar >= 7) strengths.push("Proper grammar usage");
     return strengths.length > 0 ? strengths : ["Keep practicing to improve your skills"];
   };
-
   const generateImprovements = (vocab: number, fluency: number, confidence: number, clarity: number, grammar: number) => {
     const improvements = [];
     if (vocab < 7) improvements.push("Try using more varied vocabulary");
@@ -430,7 +390,6 @@ const Speech = () => {
     if (grammar < 7) improvements.push("Review basic grammar rules");
     return improvements;
   };
-
   const resetAnalysis = () => {
     setMode(null);
     setSelectedTopic("");
@@ -440,9 +399,7 @@ const Speech = () => {
     setAudioUrl("");
     setTranscript("");
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-neura-secondary">
+  return <div className="min-h-screen bg-gradient-neura-secondary">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border shadow-sm">
         <div className="container mx-auto px-6 py-4">
@@ -457,7 +414,7 @@ const Speech = () => {
             </div>
             
             <nav className="hidden md:flex items-center space-x-8">
-              <span className="text-foreground/60">Speech Analysis</span>
+              
             </nav>
 
             <div className="flex items-center space-x-4">
@@ -473,46 +430,23 @@ const Speech = () => {
       </header>
 
       <div className="container mx-auto px-6 py-8 pt-24">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-neura bg-clip-text text-transparent mb-4">
-            Speech Analysis
-          </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Improve your speaking skills with AI-powered analysis and feedback
-          </p>
-        </div>
+        
 
-        {analysisState === "idle" && !mode && (
-          <SpeechModeSelection onModeSelect={setMode} />
-        )}
+        {analysisState === "idle" && !mode && <SpeechModeSelection onModeSelect={setMode} />}
 
-        {mode && !selectedTopic && analysisState === "idle" && (
-          <TopicSelection mode={mode} onTopicSelect={setSelectedTopic} onBack={() => setMode(null)} />
-        )}
+        {mode && !selectedTopic && analysisState === "idle" && <TopicSelection mode={mode} onTopicSelect={setSelectedTopic} onBack={() => setMode(null)} />}
 
-        {selectedTopic && (analysisState === "idle" || analysisState === "recording") && (
-          <SpeechRecording
-            topic={selectedTopic}
-            mode={mode!}
-            isRecording={isRecording}
-            onStartRecording={startRecording}
-            onStopRecording={stopRecording}
-            onBack={() => setSelectedTopic("")}
-          />
-        )}
+        {selectedTopic && (analysisState === "idle" || analysisState === "recording") && <SpeechRecording topic={selectedTopic} mode={mode!} isRecording={isRecording} onStartRecording={startRecording} onStopRecording={stopRecording} onBack={() => setSelectedTopic("")} />}
 
-        {analysisState === "processing" && (
-          <Card className="max-w-2xl mx-auto bg-black/40 border-neura-cyan/30">
+        {analysisState === "processing" && <Card className="max-w-2xl mx-auto bg-black/40 border-neura-cyan/30">
             <CardContent className="p-8 text-center">
               <div className="animate-spin w-16 h-16 border-4 border-neura-cyan border-t-transparent rounded-full mx-auto mb-4"></div>
               <h3 className="text-xl font-semibold text-white mb-2">Analyzing Your Speech</h3>
               <p className="text-muted-foreground">Our AI is processing your recording...</p>
             </CardContent>
-          </Card>
-        )}
+          </Card>}
 
-        {analysisState === "complete" && analysisResult && (
-          <>
+        {analysisState === "complete" && analysisResult && <>
             <SpeechAnalysis result={analysisResult} audioUrl={audioUrl} />
             <div className="text-center mt-8">
               <Button onClick={resetAnalysis} variant="neura" size="lg">
@@ -520,11 +454,8 @@ const Speech = () => {
                 Try Again
               </Button>
             </div>
-          </>
-        )}
+          </>}
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Speech;
