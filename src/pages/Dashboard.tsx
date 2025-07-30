@@ -55,7 +55,7 @@ const Dashboard = () => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center p-8">
+      <main className="max-w-4xl mx-auto p-8 flex-1 flex flex-col justify-center">
         <div className="text-center space-y-4 mb-12">
           <h1 className="text-4xl font-bold text-foreground">
             Welcome, {username}!
