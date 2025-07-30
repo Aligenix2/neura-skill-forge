@@ -28,7 +28,7 @@ const Dashboard = () => {
       icon: Lightbulb,
       description: "Business acumen development with real-world case studies.",
       route: "/coming-soon",
-      iconColor: "bg-neura-pink"
+      iconColor: "bg-green-600"
     }
   ];
 
@@ -66,7 +66,7 @@ const Dashboard = () => {
         </div>
 
         {/* Learning Options */}
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-6 max-w-fit mx-auto">
           {learningOptions.map((option) => {
             const IconComponent = option.icon;
             return (
