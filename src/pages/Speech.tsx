@@ -183,8 +183,8 @@ const Speech = () => {
             return;
           }
           
-          // Use enhanced AI-powered analysis
-          const result = await analyzeTranscript(finalTranscript, audioBlob);
+          // Use enhanced AI-powered analysis with topic and mode
+          const result = await analyzeTranscript(finalTranscript, audioBlob, selectedTopic, mode as 'opinion' | 'storytelling');
           setAnalysisResult(result);
           setAnalysisState("complete");
           

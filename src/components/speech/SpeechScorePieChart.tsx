@@ -6,16 +6,18 @@ interface SpeechScorePieChartProps {
   confidence: number;
   clarity: number;
   grammar: number;
+  topicRelevance: number;
   overall: number;
 }
 
-export const SpeechScorePieChart = ({ vocabulary, fluency, confidence, clarity, grammar, overall }: SpeechScorePieChartProps) => {
+export const SpeechScorePieChart = ({ vocabulary, fluency, confidence, clarity, grammar, topicRelevance, overall }: SpeechScorePieChartProps) => {
   const data = [
     { name: "Vocabulary", value: vocabulary, color: "#8B5CF6" },
     { name: "Fluency", value: fluency, color: "#06B6D4" },
     { name: "Confidence", value: confidence, color: "#EC4899" },
     { name: "Clarity", value: clarity, color: "#3B82F6" },
-    { name: "Grammar", value: grammar, color: "#10B981" }
+    { name: "Grammar", value: grammar, color: "#10B981" },
+    { name: "Topic Relevance", value: topicRelevance, color: "#F97316" }
   ];
 
   const total = data.reduce((sum, item) => sum + item.value, 0);

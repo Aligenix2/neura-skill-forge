@@ -249,6 +249,27 @@ export const SpeechAnalysis = ({ result, audioUrl }: SpeechAnalysisProps) => {
             </Card>
           </div>
 
+          {/* Detailed Metrics */}
+          <div className="grid lg:grid-cols-2 gap-8">
+            <SpeechMetricsChart 
+              vocabulary={result.vocabulary}
+              fluency={result.fluency}
+              confidence={result.confidence}
+              clarity={result.clarity}
+              grammar={result.grammar}
+              topicRelevance={result.topicRelevance}
+            />
+            <SpeechScorePieChart 
+              vocabulary={result.vocabulary}
+              fluency={result.fluency}
+              confidence={result.confidence}
+              clarity={result.clarity}
+              grammar={result.grammar}
+              topicRelevance={result.topicRelevance}
+              overall={result.overall}
+            />
+          </div>
+
           {/* Detailed Error Analysis */}
           {result.feedback.errors.length > 0 && (
             <Card className="relative bg-card/80 backdrop-blur-sm border-2 border-red-500/30 overflow-hidden">

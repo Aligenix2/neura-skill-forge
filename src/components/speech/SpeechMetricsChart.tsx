@@ -7,15 +7,17 @@ interface SpeechMetricsChartProps {
   confidence: number;
   clarity: number;
   grammar: number;
+  topicRelevance: number;
 }
 
-export const SpeechMetricsChart = ({ vocabulary, fluency, confidence, clarity, grammar }: SpeechMetricsChartProps) => {
+export const SpeechMetricsChart = ({ vocabulary, fluency, confidence, clarity, grammar, topicRelevance }: SpeechMetricsChartProps) => {
   const metrics = [
     { label: "Vocabulary", score: vocabulary, icon: "📚", color: "from-neura-purple to-neura-purple/80" },
     { label: "Fluency", score: fluency, icon: "🗣️", color: "from-neura-cyan to-neura-cyan/80" },
     { label: "Confidence", score: confidence, icon: "💪", color: "from-neura-pink to-neura-pink/80" },
     { label: "Clarity", score: clarity, icon: "🔍", color: "from-blue-500 to-blue-600" },
-    { label: "Grammar", score: grammar, icon: "📝", color: "from-green-500 to-green-600" }
+    { label: "Grammar", score: grammar, icon: "📝", color: "from-green-500 to-green-600" },
+    { label: "Topic Relevance", score: topicRelevance, icon: "🎯", color: "from-orange-500 to-orange-600" }
   ];
 
   const getScoreColor = (score: number) => {

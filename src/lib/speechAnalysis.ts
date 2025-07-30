@@ -11,12 +11,13 @@ export interface SpeechAnalysisResult {
   confidence: number;
   clarity: number;
   grammar: number;
+  topicRelevance: number;
   transcript: string;
   feedback: {
     strengths: string[];
     improvements: string[];
     errors: Array<{
-      type: 'grammar' | 'filler' | 'repetition' | 'clarity' | 'vocabulary' | 'fluency';
+      type: 'grammar' | 'filler' | 'repetition' | 'clarity' | 'vocabulary' | 'fluency' | 'topic';
       text: string;
       suggestion: string;
       position: [number, number];
@@ -26,6 +27,7 @@ export interface SpeechAnalysisResult {
 
 let grammarChecker: any = null;
 let sentimentAnalyzer: any = null;
+let semanticModel: any = null;
 
 async function initializeModels() {
   try {
@@ -43,12 +45,24 @@ async function initializeModels() {
         { device: 'webgpu' }
       );
     }
+    if (!semanticModel) {
+      semanticModel = await pipeline(
+        'feature-extraction',
+        'sentence-transformers/all-MiniLM-L6-v2',
+        { device: 'webgpu' }
+      );
+    }
   } catch (error) {
     console.warn('Failed to initialize AI models, falling back to local analysis:', error);
   }
 }
 
-export async function analyzeTranscript(transcript: string, audioBlob: Blob): Promise<SpeechAnalysisResult> {
+export async function analyzeTranscript(
+  transcript: string, 
+  audioBlob: Blob, 
+  topic?: string, 
+  mode?: 'opinion' | 'storytelling'
+): Promise<SpeechAnalysisResult> {
   await initializeModels();
   
   const sentences = transcript.split(/[.!?]+/).filter(s => s.trim().length > 0);
@@ -61,14 +75,24 @@ export async function analyzeTranscript(transcript: string, audioBlob: Blob): Pr
   const clarityScore = analyzeClarity(transcript, words);
   const grammarScore = await analyzeGrammar(sentences);
   
-  // Detect errors
-  const errors = detectErrors(transcript, words);
+  // Analyze topic relevance if topic is provided
+  const topicRelevanceScore = topic ? await analyzeTopicRelevance(transcript, topic, mode) : 10;
+  
+  // Detect errors (including topic-related errors)
+  const errors = detectErrors(transcript, words, topic, mode);
+  
+  // Calculate balanced overall score (Speech Mechanics: 70%, Topic Relevance: 30%)
+  const mechanicsScore = (vocabularyScore + fluencyScore + confidenceScore + clarityScore + grammarScore) / 5;
+  const weightedScore = topic ? (mechanicsScore * 0.7) + (topicRelevanceScore * 0.3) : mechanicsScore;
+  
+  // Apply topic penalty: Users who completely ignore the topic are capped at 4/10
+  const overall = topic && topicRelevanceScore < 3 ? 
+    Math.min(4, Math.round(weightedScore)) : 
+    Math.round(weightedScore);
   
   // Generate feedback
-  const strengths = generateStrengths(vocabularyScore, fluencyScore, confidenceScore, clarityScore, grammarScore);
-  const improvements = generateImprovements(vocabularyScore, fluencyScore, confidenceScore, clarityScore, grammarScore, errors);
-  
-  const overall = Math.round((vocabularyScore + fluencyScore + confidenceScore + clarityScore + grammarScore) / 5);
+  const strengths = generateStrengths(vocabularyScore, fluencyScore, confidenceScore, clarityScore, grammarScore, topicRelevanceScore);
+  const improvements = generateImprovements(vocabularyScore, fluencyScore, confidenceScore, clarityScore, grammarScore, topicRelevanceScore, errors);
   
   return {
     overall,
@@ -77,6 +101,7 @@ export async function analyzeTranscript(transcript: string, audioBlob: Blob): Pr
     confidence: confidenceScore,
     clarity: clarityScore,
     grammar: grammarScore,
+    topicRelevance: topicRelevanceScore,
     transcript,
     feedback: {
       strengths,
@@ -380,7 +405,121 @@ async function analyzeGrammar(sentences: string[]): Promise<number> {
   return Math.round(Math.min(10, Math.max(1, score)));
 }
 
-function detectErrors(transcript: string, words: string[]): SpeechAnalysisResult['feedback']['errors'] {
+async function analyzeTopicRelevance(transcript: string, topic: string, mode?: 'opinion' | 'storytelling'): Promise<number> {
+  const transcriptLower = transcript.toLowerCase();
+  const topicLower = topic.toLowerCase();
+  
+  // Extract key terms from topic
+  const topicKeywords = extractTopicKeywords(topicLower);
+  
+  // Basic keyword matching
+  const keywordMatches = topicKeywords.filter(keyword => 
+    transcriptLower.includes(keyword.toLowerCase())
+  ).length;
+  const keywordRatio = topicKeywords.length > 0 ? keywordMatches / topicKeywords.length : 0;
+  
+  // Content depth analysis
+  const contentDepth = analyzeContentDepth(transcript, topic, mode);
+  
+  // Try semantic similarity if model is available
+  let semanticScore = 0;
+  try {
+    if (semanticModel) {
+      const topicEmbedding = await semanticModel(topic);
+      const transcriptEmbedding = await semanticModel(transcript);
+      semanticScore = calculateCosineSimilarity(topicEmbedding.data, transcriptEmbedding.data);
+    }
+  } catch (error) {
+    console.warn('Semantic analysis failed, using keyword-based analysis');
+  }
+  
+  // Calculate final topic relevance score
+  let score = 1;
+  
+  // 9-10: Excellent topic engagement with semantic understanding
+  if (keywordRatio > 0.7 && contentDepth > 0.8 && semanticScore > 0.7) {
+    score = 9 + Math.min(1, keywordRatio + semanticScore);
+  }
+  // 7-8: Good topic engagement with most key points covered
+  else if (keywordRatio > 0.5 && contentDepth > 0.6) {
+    score = 7 + (keywordRatio * 2);
+  }
+  // 5-6: Moderate topic engagement, some relevant content
+  else if (keywordRatio > 0.3 && contentDepth > 0.4) {
+    score = 5 + keywordRatio;
+  }
+  // 3-4: Minimal topic engagement, barely relevant
+  else if (keywordRatio > 0.1 || contentDepth > 0.2) {
+    score = 3 + (keywordRatio * 2);
+  }
+  // 1-2: No clear topic engagement
+  
+  return Math.round(Math.min(10, Math.max(1, score)));
+}
+
+function extractTopicKeywords(topic: string): string[] {
+  // Remove common words and extract meaningful terms
+  const commonWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'than', 'vs', 'versus'];
+  const words = topic.split(/\s+/).filter(word => 
+    word.length > 2 && !commonWords.includes(word.toLowerCase())
+  );
+  
+  // Add variations and synonyms for better matching
+  const keywords = [...words];
+  
+  // Add seasonal variations if topic contains seasons
+  if (topic.includes('winter')) keywords.push('cold', 'snow', 'ice', 'freezing');
+  if (topic.includes('summer')) keywords.push('hot', 'warm', 'heat', 'sun', 'vacation');
+  if (topic.includes('better')) keywords.push('prefer', 'superior', 'advantage', 'benefit');
+  
+  return keywords;
+}
+
+function analyzeContentDepth(transcript: string, topic: string, mode?: 'opinion' | 'storytelling'): number {
+  const transcriptLength = transcript.split(/\s+/).length;
+  
+  // Check for mode-specific requirements
+  let modeScore = 0.5; // Default neutral score
+  
+  if (mode === 'opinion') {
+    // Look for opinion indicators
+    const opinionMarkers = transcript.toLowerCase().match(/\b(i think|i believe|in my opinion|personally|i feel|i prefer|better|worse|should|would|agree|disagree)\b/g) || [];
+    const argumentMarkers = transcript.toLowerCase().match(/\b(because|since|therefore|however|although|for example|such as|this shows|this proves)\b/g) || [];
+    
+    if (opinionMarkers.length > 0 && argumentMarkers.length > 0) modeScore = 1;
+    else if (opinionMarkers.length > 0) modeScore = 0.7;
+  } else if (mode === 'storytelling') {
+    // Look for narrative elements
+    const narrativeMarkers = transcript.toLowerCase().match(/\b(once|when|then|after|before|during|while|remember|happened|experience|story|time)\b/g) || [];
+    const personalMarkers = transcript.toLowerCase().match(/\b(i|me|my|myself|we|us|our)\b/g) || [];
+    
+    if (narrativeMarkers.length > 2 && personalMarkers.length > 3) modeScore = 1;
+    else if (narrativeMarkers.length > 0) modeScore = 0.7;
+  }
+  
+  // Content length factor
+  const lengthFactor = Math.min(1, transcriptLength / 100); // Expect at least 100 words for full credit
+  
+  return modeScore * lengthFactor;
+}
+
+function calculateCosineSimilarity(a: number[], b: number[]): number {
+  if (a.length !== b.length) return 0;
+  
+  let dotProduct = 0;
+  let normA = 0;
+  let normB = 0;
+  
+  for (let i = 0; i < a.length; i++) {
+    dotProduct += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+function detectErrors(transcript: string, words: string[], topic?: string, mode?: 'opinion' | 'storytelling'): SpeechAnalysisResult['feedback']['errors'] {
   const errors: SpeechAnalysisResult['feedback']['errors'] = [];
   
   // Detect filler words
@@ -412,6 +551,52 @@ function detectErrors(transcript: string, words: string[]): SpeechAnalysisResult
     }
   });
   
+  // Detect topic-related errors if topic is provided
+  if (topic) {
+    const topicKeywords = extractTopicKeywords(topic.toLowerCase());
+    const transcriptLower = transcript.toLowerCase();
+    const mentionedKeywords = topicKeywords.filter(keyword => transcriptLower.includes(keyword.toLowerCase()));
+    
+    if (mentionedKeywords.length === 0) {
+      errors.push({
+        type: 'topic',
+        text: 'No topic keywords found',
+        suggestion: `Your speech should address the topic: "${topic}". Include relevant keywords and stay on topic.`,
+        position: [0, transcript.length]
+      });
+    } else if (mentionedKeywords.length < topicKeywords.length * 0.5) {
+      errors.push({
+        type: 'topic',
+        text: 'Insufficient topic coverage',
+        suggestion: `Address more aspects of the topic: "${topic}". You covered ${mentionedKeywords.length} out of ${topicKeywords.length} key areas.`,
+        position: [0, transcript.length]
+      });
+    }
+    
+    // Mode-specific errors
+    if (mode === 'opinion') {
+      const opinionMarkers = transcript.toLowerCase().match(/\b(i think|i believe|in my opinion|personally|i feel|i prefer)\b/g) || [];
+      if (opinionMarkers.length === 0) {
+        errors.push({
+          type: 'topic',
+          text: 'No clear opinion stated',
+          suggestion: 'For opinion topics, clearly state your viewpoint using phrases like "I believe", "In my opinion", or "I think".',
+          position: [0, transcript.length]
+        });
+      }
+    } else if (mode === 'storytelling') {
+      const narrativeMarkers = transcript.toLowerCase().match(/\b(once|when|then|after|remember|happened|experience|story)\b/g) || [];
+      if (narrativeMarkers.length === 0) {
+        errors.push({
+          type: 'topic',
+          text: 'Missing storytelling elements',
+          suggestion: 'For storytelling topics, include narrative elements like personal experiences, sequences of events, and descriptive details.',
+          position: [0, transcript.length]
+        });
+      }
+    }
+  }
+  
   return errors;
 }
 
@@ -428,7 +613,7 @@ function findRepetitions(words: string[]): Array<{word: string, count: number}> 
     .map(([word, count]) => ({word, count}));
 }
 
-function generateStrengths(vocab: number, fluency: number, confidence: number, clarity: number, grammar: number): string[] {
+function generateStrengths(vocab: number, fluency: number, confidence: number, clarity: number, grammar: number, topicRelevance: number = 10): string[] {
   const strengths: string[] = [];
   
   if (vocab >= 8) strengths.push("Excellent vocabulary diversity and word choice");
@@ -436,6 +621,7 @@ function generateStrengths(vocab: number, fluency: number, confidence: number, c
   if (confidence >= 8) strengths.push("Strong, confident delivery");
   if (clarity >= 8) strengths.push("Clear and articulate pronunciation");
   if (grammar >= 8) strengths.push("Proper grammar and sentence structure");
+  if (topicRelevance >= 8) strengths.push("Excellent topic engagement and content relevance");
   
   if (strengths.length === 0) {
     if (Math.max(vocab, fluency, confidence, clarity, grammar) >= 6) {
@@ -448,7 +634,7 @@ function generateStrengths(vocab: number, fluency: number, confidence: number, c
   return strengths;
 }
 
-function generateImprovements(vocab: number, fluency: number, confidence: number, clarity: number, grammar: number, errors: any[]): string[] {
+function generateImprovements(vocab: number, fluency: number, confidence: number, clarity: number, grammar: number, topicRelevance: number = 10, errors: any[]): string[] {
   const improvements: string[] = [];
   
   if (vocab < 6) improvements.push("Expand vocabulary with more varied word choices");
@@ -456,12 +642,16 @@ function generateImprovements(vocab: number, fluency: number, confidence: number
   if (confidence < 6) improvements.push("Use more assertive language and confident tone");
   if (clarity < 6) improvements.push("Focus on clearer pronunciation and articulation");
   if (grammar < 6) improvements.push("Review grammar rules and sentence construction");
+  if (topicRelevance < 6) improvements.push("Stay more focused on the given topic and provide relevant examples");
   
   const fillerCount = errors.filter(e => e.type === 'filler').length;
   if (fillerCount > 3) improvements.push("Practice eliminating filler words like 'um' and 'uh'");
   
   const repetitionCount = errors.filter(e => e.type === 'repetition').length;
   if (repetitionCount > 2) improvements.push("Avoid unnecessary word repetition");
+  
+  const topicErrors = errors.filter(e => e.type === 'topic').length;
+  if (topicErrors > 0) improvements.push("Address the given topic more directly with relevant content and examples");
   
   if (improvements.length === 0) {
     improvements.push("Continue practicing to maintain your strong speaking skills");
