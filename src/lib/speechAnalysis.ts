@@ -521,80 +521,368 @@ function calculateCosineSimilarity(a: number[], b: number[]): number {
 
 function detectErrors(transcript: string, words: string[], topic?: string, mode?: 'opinion' | 'storytelling'): SpeechAnalysisResult['feedback']['errors'] {
   const errors: SpeechAnalysisResult['feedback']['errors'] = [];
+  const sentences = transcript.split(/[.!?]+/).filter(s => s.trim().length > 0);
   
-  // Detect filler words
-  const fillerWords = ['um', 'uh', 'like', 'you know', 'so', 'well', 'actually', 'basically'];
-  fillerWords.forEach(filler => {
-    const regex = new RegExp(`\\b${filler}\\b`, 'gi');
-    let match;
-    while ((match = regex.exec(transcript)) !== null) {
-      errors.push({
-        type: 'filler',
-        text: match[0],
-        suggestion: 'Consider pausing instead of using filler words',
-        position: [match.index, match.index + match[0].length]
-      });
-    }
-  });
+  // 1. ENHANCED GRAMMAR ERROR DETECTION
+  errors.push(...detectGrammarErrors(transcript, sentences));
   
-  // Detect repetitions
-  const repetitions = findRepetitions(words);
-  repetitions.forEach(rep => {
-    const index = transcript.toLowerCase().indexOf(rep.word);
-    if (index !== -1) {
-      errors.push({
-        type: 'repetition',
-        text: rep.word,
-        suggestion: `Avoid repeating "${rep.word}" ${rep.count} times`,
-        position: [index, index + rep.word.length]
-      });
-    }
-  });
+  // 2. ADVANCED VOCABULARY ANALYSIS  
+  errors.push(...detectVocabularyErrors(transcript, words));
   
-  // Detect topic-related errors if topic is provided
+  // 3. SPEECH-SPECIFIC ERROR DETECTION
+  errors.push(...detectSpeechErrors(transcript, words));
+  
+  // 4. FLUENCY AND CLARITY ERRORS
+  errors.push(...detectFluencyErrors(transcript, words));
+  
+  // 5. TOPIC-SPECIFIC CONTENT ANALYSIS
   if (topic) {
-    const topicKeywords = extractTopicKeywords(topic.toLowerCase());
-    const transcriptLower = transcript.toLowerCase();
-    const mentionedKeywords = topicKeywords.filter(keyword => transcriptLower.includes(keyword.toLowerCase()));
+    errors.push(...detectTopicErrors(transcript, topic, mode));
+  }
+  
+  return errors;
+}
+
+// Enhanced Grammar Error Detection
+function detectGrammarErrors(transcript: string, sentences: string[]): SpeechAnalysisResult['feedback']['errors'] {
+  const errors: SpeechAnalysisResult['feedback']['errors'] = [];
+  
+  sentences.forEach((sentence, index) => {
+    const sent = sentence.trim();
+    if (sent.length < 5) return;
     
-    if (mentionedKeywords.length === 0) {
-      errors.push({
-        type: 'topic',
-        text: 'No topic keywords found',
-        suggestion: `Your speech should address the topic: "${topic}". Include relevant keywords and stay on topic.`,
-        position: [0, transcript.length]
+    const words = sent.split(/\s+/);
+    const sentenceStart = transcript.indexOf(sent);
+    
+    // Subject-verb disagreement patterns
+    const svDisagreements = [
+      { pattern: /\b(I|you|we|they)\s+is\b/gi, suggestion: "Use 'are' with plural subjects (I/you/we/they)" },
+      { pattern: /\b(he|she|it)\s+are\b/gi, suggestion: "Use 'is' with singular subjects (he/she/it)" },
+      { pattern: /\b(they|we)\s+was\b/gi, suggestion: "Use 'were' with plural subjects" },
+      { pattern: /\b(I|you)\s+was\b/gi, suggestion: "Use 'were' with 'you' and 'I' in past tense" }
+    ];
+    
+    svDisagreements.forEach(({pattern, suggestion}) => {
+      const matches = [...sent.matchAll(pattern)];
+      matches.forEach(match => {
+        if (match.index !== undefined) {
+          errors.push({
+            type: 'grammar',
+            text: match[0],
+            suggestion: suggestion,
+            position: [sentenceStart + match.index, sentenceStart + match.index + match[0].length]
+          });
+        }
       });
-    } else if (mentionedKeywords.length < topicKeywords.length * 0.5) {
+    });
+    
+    // Tense consistency issues
+    const pastPresentMix = /\b(yesterday|last week|ago)\b.*\b(go|come|see|do|have)\b(?!\s+(to|been|done))/gi;
+    if (pastPresentMix.test(sent)) {
+      const match = pastPresentMix.exec(sent);
+      if (match && match.index !== undefined) {
+        errors.push({
+          type: 'grammar',
+          text: match[0],
+          suggestion: "Use past tense verbs when referring to past events (went, came, saw, did, had)",
+          position: [sentenceStart + match.index, sentenceStart + match.index + match[0].length]
+        });
+      }
+    }
+    
+    // Article misuse
+    const articleErrors = [
+      { pattern: /\ba\s+[aeiou]/gi, suggestion: "Use 'an' before vowel sounds" },
+      { pattern: /\ban\s+[bcdfghjklmnpqrstvwxyz]/gi, suggestion: "Use 'a' before consonant sounds" }
+    ];
+    
+    articleErrors.forEach(({pattern, suggestion}) => {
+      const matches = [...sent.matchAll(pattern)];
+      matches.forEach(match => {
+        if (match.index !== undefined) {
+          errors.push({
+            type: 'grammar',
+            text: match[0],
+            suggestion: suggestion,
+            position: [sentenceStart + match.index, sentenceStart + match.index + match[0].length]
+          });
+        }
+      });
+    });
+    
+    // Sentence fragments
+    if (words.length < 3 && !sent.match(/^(yes|no|okay|right|sure|exactly)$/i)) {
+      errors.push({
+        type: 'grammar',
+        text: sent,
+        suggestion: "This appears to be a sentence fragment. Consider making it a complete sentence with subject and verb.",
+        position: [sentenceStart, sentenceStart + sent.length]
+      });
+    }
+    
+    // Run-on sentences (extremely long)
+    if (words.length > 40) {
+      errors.push({
+        type: 'grammar',
+        text: sent.substring(0, 50) + "...",
+        suggestion: "This sentence is very long. Consider breaking it into shorter, clearer sentences.",
+        position: [sentenceStart, sentenceStart + sent.length]
+      });
+    }
+  });
+  
+  return errors;
+}
+
+// Advanced Vocabulary Error Detection
+function detectVocabularyErrors(transcript: string, words: string[]): SpeechAnalysisResult['feedback']['errors'] {
+  const errors: SpeechAnalysisResult['feedback']['errors'] = [];
+  
+  // Weak vocabulary patterns
+  const weakWords = [
+    { word: 'good', alternatives: ['excellent', 'outstanding', 'remarkable', 'exceptional'] },
+    { word: 'bad', alternatives: ['terrible', 'awful', 'disappointing', 'problematic'] },
+    { word: 'nice', alternatives: ['pleasant', 'delightful', 'wonderful', 'appealing'] },
+    { word: 'big', alternatives: ['enormous', 'massive', 'substantial', 'significant'] },
+    { word: 'small', alternatives: ['tiny', 'minimal', 'compact', 'modest'] },
+    { word: 'thing', alternatives: ['aspect', 'element', 'factor', 'component'] },
+    { word: 'stuff', alternatives: ['items', 'materials', 'elements', 'matters'] },
+    { word: 'a lot', alternatives: ['many', 'numerous', 'considerable', 'substantial'] }
+  ];
+  
+  weakWords.forEach(({word, alternatives}) => {
+    const regex = new RegExp(`\\b${word}\\b`, 'gi');
+    const matches = [...transcript.matchAll(regex)];
+    if (matches.length > 2) { // Only flag if used multiple times
+      matches.forEach((match, index) => {
+        if (match.index !== undefined && index < 3) { // Limit to first 3 occurrences
+          errors.push({
+            type: 'vocabulary',
+            text: match[0],
+            suggestion: `Consider using more specific words like: ${alternatives.join(', ')}`,
+            position: [match.index, match.index + match[0].length]
+          });
+        }
+      });
+    }
+  });
+  
+  // Repetitive vocabulary
+  const wordCounts: {[key: string]: number} = {};
+  const wordPositions: {[key: string]: number[]} = {};
+  
+  words.forEach((word, index) => {
+    const cleanWord = word.toLowerCase().replace(/[^\w]/g, '');
+    if (cleanWord.length > 3) { // Only check meaningful words
+      wordCounts[cleanWord] = (wordCounts[cleanWord] || 0) + 1;
+      if (!wordPositions[cleanWord]) wordPositions[cleanWord] = [];
+      wordPositions[cleanWord].push(index);
+    }
+  });
+  
+  Object.entries(wordCounts).forEach(([word, count]) => {
+    if (count > 4 && word.length > 4) { // Significant repetition of meaningful words
+      const firstPosition = transcript.toLowerCase().indexOf(word);
+      if (firstPosition !== -1) {
+        errors.push({
+          type: 'vocabulary',
+          text: word,
+          suggestion: `You used "${word}" ${count} times. Try using synonyms to show vocabulary variety.`,
+          position: [firstPosition, firstPosition + word.length]
+        });
+      }
+    }
+  });
+  
+  return errors;
+}
+
+// Speech-Specific Error Detection
+function detectSpeechErrors(transcript: string, words: string[]): SpeechAnalysisResult['feedback']['errors'] {
+  const errors: SpeechAnalysisResult['feedback']['errors'] = [];
+  
+  // Enhanced filler word detection with categories
+  const fillerCategories = {
+    hesitation: ['um', 'uh', 'er', 'ah', 'hmm'],
+    verbal_crutches: ['like', 'you know', 'i mean', 'sort of', 'kind of'],
+    discourse_markers: ['so', 'well', 'actually', 'basically', 'obviously', 'literally'],
+    time_fillers: ['then', 'and then', 'after that', 'next thing']
+  };
+  
+  Object.entries(fillerCategories).forEach(([category, fillers]) => {
+    fillers.forEach(filler => {
+      const regex = new RegExp(`\\b${filler.replace(/\s+/g, '\\s+')}\\b`, 'gi');
+      const matches = [...transcript.matchAll(regex)];
+      
+      if (matches.length > 3) { // Only flag excessive use
+        matches.slice(0, 3).forEach(match => { // Limit to first 3 occurrences
+          if (match.index !== undefined) {
+            errors.push({
+              type: 'fluency',
+              text: match[0],
+              suggestion: `Reduce ${category.replace('_', ' ')} words. Used "${filler}" ${matches.length} times. Practice pausing instead.`,
+              position: [match.index, match.index + match[0].length]
+            });
+          }
+        });
+      }
+    });
+  });
+  
+  // Pronunciation issues (repeated characters)
+  const pronunciationIssues = transcript.match(/\b\w*(.)\1{2,}\w*\b/g) || [];
+  pronunciationIssues.forEach(issue => {
+    const position = transcript.indexOf(issue);
+    if (position !== -1) {
+      errors.push({
+        type: 'clarity',
+        text: issue,
+        suggestion: "This may indicate unclear pronunciation. Practice speaking clearly and at a steady pace.",
+        position: [position, position + issue.length]
+      });
+    }
+  });
+  
+  // Incomplete thoughts (trailing sentences)
+  const incompletePatterns = [
+    /\b(and|but|so|because)\s*\.{3,}$/gi,
+    /\b(i was gonna|i wanted to|i think that)\s*\.{2,}$/gi
+  ];
+  
+  incompletePatterns.forEach(pattern => {
+    const matches = [...transcript.matchAll(pattern)];
+    matches.forEach(match => {
+      if (match.index !== undefined) {
+        errors.push({
+          type: 'fluency',
+          text: match[0],
+          suggestion: "Complete your thoughts. Avoid trailing off mid-sentence.",
+          position: [match.index, match.index + match[0].length]
+        });
+      }
+    });
+  });
+  
+  return errors;
+}
+
+// Fluency and Clarity Error Detection
+function detectFluencyErrors(transcript: string, words: string[]): SpeechAnalysisResult['feedback']['errors'] {
+  const errors: SpeechAnalysisResult['feedback']['errors'] = [];
+  
+  // Excessive pauses (multiple spaces or repeated punctuation)
+  const pausePatterns = transcript.match(/\s{3,}|\.{3,}|,{2,}/g) || [];
+  pausePatterns.forEach(pattern => {
+    const position = transcript.indexOf(pattern);
+    if (position !== -1) {
+      errors.push({
+        type: 'fluency',
+        text: pattern,
+        suggestion: "Excessive pauses detected. Practice speaking with more natural rhythm and flow.",
+        position: [position, position + pattern.length]
+      });
+    }
+  });
+  
+  // False starts and self-corrections
+  const falsestarts = transcript.match(/\b\w+\s+no\s+\w+|\b\w+\s+sorry\s+\w+|\b\w+\s+i mean\s+\w+/gi) || [];
+  falsestarts.forEach(falsestart => {
+    const position = transcript.indexOf(falsestart);
+    if (position !== -1) {
+      errors.push({
+        type: 'fluency',
+        text: falsestart,
+        suggestion: "Self-corrections interrupt flow. Practice organizing thoughts before speaking.",
+        position: [position, position + falsestart.length]
+      });
+    }
+  });
+  
+  // Word fragments (very short "words")
+  const fragments = words.filter(word => word.length === 1 && word.match(/[a-z]/i));
+  if (fragments.length > 3) {
+    errors.push({
+      type: 'clarity',
+      text: fragments.join(', '),
+      suggestion: `Multiple word fragments detected (${fragments.length}). This may indicate unclear speech or poor audio quality.`,
+      position: [0, transcript.length]
+    });
+  }
+  
+  return errors;
+}
+
+// Topic-Specific Error Detection
+function detectTopicErrors(transcript: string, topic: string, mode?: 'opinion' | 'storytelling'): SpeechAnalysisResult['feedback']['errors'] {
+  const errors: SpeechAnalysisResult['feedback']['errors'] = [];
+  
+  const topicKeywords = extractTopicKeywords(topic);
+  const transcriptLower = transcript.toLowerCase();
+  const mentionedKeywords = topicKeywords.filter(keyword => 
+    transcriptLower.includes(keyword.toLowerCase())
+  );
+  
+  // Insufficient topic coverage
+  if (mentionedKeywords.length < topicKeywords.length * 0.3) {
+    errors.push({
+      type: 'topic',
+      text: 'Insufficient topic coverage',
+      suggestion: `Address more aspects of "${topic}". Key points to cover: ${topicKeywords.slice(0, 4).join(', ')}`,
+      position: [0, transcript.length]
+    });
+  }
+  
+  // Mode-specific requirements
+  if (mode === 'opinion') {
+    const opinionMarkers = ['i think', 'i believe', 'in my opinion', 'i feel', 'personally', 'i prefer'];
+    const hasOpinion = opinionMarkers.some(marker => transcriptLower.includes(marker));
+    
+    if (!hasOpinion) {
       errors.push({
         type: 'topic',
-        text: 'Insufficient topic coverage',
-        suggestion: `Address more aspects of the topic: "${topic}". You covered ${mentionedKeywords.length} out of ${topicKeywords.length} key areas.`,
+        text: 'Missing personal stance',
+        suggestion: "For opinion topics, clearly state your personal viewpoint using phrases like 'I think', 'I believe', or 'In my opinion'",
         position: [0, transcript.length]
       });
     }
     
-    // Mode-specific errors
-    if (mode === 'opinion') {
-      const opinionMarkers = transcript.toLowerCase().match(/\b(i think|i believe|in my opinion|personally|i feel|i prefer)\b/g) || [];
-      if (opinionMarkers.length === 0) {
-        errors.push({
-          type: 'topic',
-          text: 'No clear opinion stated',
-          suggestion: 'For opinion topics, clearly state your viewpoint using phrases like "I believe", "In my opinion", or "I think".',
-          position: [0, transcript.length]
-        });
-      }
-    } else if (mode === 'storytelling') {
-      const narrativeMarkers = transcript.toLowerCase().match(/\b(once|when|then|after|remember|happened|experience|story)\b/g) || [];
-      if (narrativeMarkers.length === 0) {
-        errors.push({
-          type: 'topic',
-          text: 'Missing storytelling elements',
-          suggestion: 'For storytelling topics, include narrative elements like personal experiences, sequences of events, and descriptive details.',
-          position: [0, transcript.length]
-        });
-      }
+    // Check for supporting arguments
+    const argumentMarkers = ['because', 'since', 'therefore', 'for example', 'first', 'second', 'finally'];
+    const hasArguments = argumentMarkers.some(marker => transcriptLower.includes(marker));
+    
+    if (!hasArguments) {
+      errors.push({
+        type: 'topic',
+        text: 'Lack of supporting arguments',
+        suggestion: "Support your opinion with reasons or examples. Use words like 'because', 'for example', or 'first/second' to structure your arguments.",
+        position: [0, transcript.length]
+      });
     }
+  }
+  
+  if (mode === 'storytelling') {
+    const storyElements = ['when', 'where', 'then', 'after', 'before', 'suddenly', 'finally'];
+    const hasNarrative = storyElements.some(element => transcriptLower.includes(element));
+    
+    if (!hasNarrative) {
+      errors.push({
+        type: 'topic',
+        text: 'Missing narrative structure',
+        suggestion: "For storytelling, include narrative elements like time indicators (when, then, after) and sequence words to create a clear story flow.",
+        position: [0, transcript.length]
+      });
+    }
+  }
+  
+  // Check for depth - very short responses
+  const wordCount = transcript.split(/\s+/).length;
+  if (wordCount < 50) {
+    errors.push({
+      type: 'topic',
+      text: 'Response too brief',
+      suggestion: `Your response is only ${wordCount} words. Provide more detail and explanation to fully address the topic.`,
+      position: [0, transcript.length]
+    });
   }
   
   return errors;
