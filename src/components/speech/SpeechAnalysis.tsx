@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play, Pause, Volume2, TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
 import { useState, useRef } from "react";
-import { SpeechAnalysisResult } from "@/pages/Speech";
+import { SpeechAnalysisResult } from "@/lib/speechAnalysis";
 import { SpeechMetricsChart } from "./SpeechMetricsChart";
 import { SpeechScorePieChart } from "./SpeechScorePieChart";
 
