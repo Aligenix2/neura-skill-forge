@@ -15,15 +15,15 @@ export const SpeechMetricsChart = ({ vocabulary, fluency, confidence, clarity, g
     { label: "Vocabulary", score: vocabulary, icon: "📚", color: "from-neura-purple to-neura-purple/80" },
     { label: "Fluency", score: fluency, icon: "🗣️", color: "from-neura-cyan to-neura-cyan/80" },
     { label: "Confidence", score: confidence, icon: "💪", color: "from-neura-pink to-neura-pink/80" },
-    { label: "Clarity", score: clarity, icon: "🔍", color: "from-blue-500 to-blue-600" },
-    { label: "Grammar", score: grammar, icon: "📝", color: "from-green-500 to-green-600" },
-    { label: "Topic Relevance", score: topicRelevance, icon: "🎯", color: "from-orange-500 to-orange-600" }
+    { label: "Clarity", score: clarity, icon: "🔍", color: "from-neura-cyan to-neura-cyan-light" },
+    { label: "Grammar", score: grammar, icon: "📝", color: "from-neura-purple to-neura-pink" },
+    { label: "Topic Relevance", score: topicRelevance, icon: "🎯", color: "from-neura-pink to-neura-purple" }
   ];
 
   const getScoreColor = (score: number) => {
-    if (score >= 8) return "text-green-400";
-    if (score >= 6) return "text-yellow-400";
-    return "text-red-400";
+    if (score >= 8) return "text-neura-cyan";
+    if (score >= 6) return "text-neura-cyan-light";
+    return "text-neura-pink";
   };
 
   const getProgressValue = (score: number) => score * 10;
@@ -31,14 +31,14 @@ export const SpeechMetricsChart = ({ vocabulary, fluency, confidence, clarity, g
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
       {metrics.map((metric) => (
-        <Card key={metric.label} className="bg-black/40 border-neura-cyan/30 hover:border-neura-cyan/60 transition-all duration-300">
+        <Card key={metric.label} className="bg-background/80 backdrop-blur-sm border-neura-cyan/20 hover:border-neura-cyan/40 hover:shadow-neura transition-all duration-300 group">
           <CardHeader className="pb-3">
-            <CardTitle className="text-white flex items-center gap-3">
-              <div className={`w-10 h-10 bg-gradient-to-br ${metric.color} rounded-lg flex items-center justify-center`}>
+            <CardTitle className="flex items-center gap-3">
+              <div className={`w-12 h-12 bg-gradient-to-br ${metric.color} rounded-xl flex items-center justify-center shadow-neura-glow group-hover:scale-110 transition-transform duration-300`}>
                 <span className="text-xl">{metric.icon}</span>
               </div>
-              <div>
-                <div className="text-lg">{metric.label}</div>
+              <div className="space-y-1">
+                <div className="text-lg font-semibold text-foreground">{metric.label}</div>
                 <div className={`text-2xl font-bold ${getScoreColor(metric.score)}`}>
                   {metric.score}/10
                 </div>
@@ -46,12 +46,16 @@ export const SpeechMetricsChart = ({ vocabulary, fluency, confidence, clarity, g
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <Progress 
-                value={getProgressValue(metric.score)} 
-                className="h-3 bg-black/30"
-              />
-              <div className="flex justify-between text-xs text-muted-foreground">
+            <div className="space-y-4">
+              <div className="relative">
+                <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-neura rounded-full transition-all duration-1000 ease-out shadow-neura-glow"
+                    style={{ width: `${getProgressValue(metric.score)}%` }}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-between text-xs text-muted-foreground font-medium">
                 <span>Needs Work</span>
                 <span>Excellent</span>
               </div>

@@ -47,68 +47,105 @@ const Speech = () => {
         stream.getTracks().forEach(track => track.stop());
       };
 
-      // Initialize speech recognition with better browser support
+      // Initialize enhanced real-time speech recognition
       if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
         const recognition = new SpeechRecognition();
+        
+        // Enhanced configuration for better accuracy and continuity
         recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = 'en-US';
-        recognition.maxAlternatives = 1;
+        recognition.maxAlternatives = 3; // Get multiple alternatives for better accuracy
+        
         let finalTranscript = '';
+        let restartAttempts = 0;
+        const maxRestartAttempts = 10;
+        
         recognition.onstart = () => {
-          console.log("Speech recognition started");
+          console.log("Enhanced speech recognition started");
+          restartAttempts = 0; // Reset on successful start
         };
+        
         recognition.onresult = (event: any) => {
-          console.log("Speech recognition result:", event);
+          console.log("Speech recognition result received");
           let interimTranscript = '';
+          
           for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript;
-            console.log("Transcript piece:", transcript, "isFinal:", event.results[i].isFinal);
-            if (event.results[i].isFinal) {
-              finalTranscript += transcript + ' ';
+            const result = event.results[i];
+            
+            // Use the most confident alternative
+            let bestTranscript = result[0].transcript;
+            let bestConfidence = result[0].confidence || 0;
+            
+            // Check alternative transcriptions for higher confidence
+            for (let j = 1; j < result.length; j++) {
+              if (result[j].confidence > bestConfidence) {
+                bestTranscript = result[j].transcript;
+                bestConfidence = result[j].confidence;
+              }
+            }
+            
+            if (result.isFinal) {
+              finalTranscript += bestTranscript + ' ';
+              console.log("Final transcript piece:", bestTranscript);
             } else {
-              interimTranscript += transcript;
+              interimTranscript += bestTranscript;
             }
           }
 
           // Update transcript state with both final and interim results
-          setTranscript(finalTranscript + interimTranscript);
-          console.log("Current transcript:", finalTranscript + interimTranscript);
+          const currentTranscript = finalTranscript + interimTranscript;
+          setTranscript(currentTranscript);
+          console.log("Updated transcript:", currentTranscript);
         };
+        
         recognition.onerror = (event: any) => {
           console.error("Speech recognition error:", event.error);
           
-          // Only show error for critical issues, not network timeouts or no-speech
-          if (event.error !== 'network' && event.error !== 'no-speech' && event.error !== 'aborted') {
+          // Handle different types of errors
+          if (event.error === 'not-allowed') {
+            toast({
+              title: "Microphone Permission Denied",
+              description: "Please allow microphone access and try again.",
+              variant: "destructive"
+            });
+            return;
+          }
+          
+          // Only show critical errors to user
+          if (!['network', 'no-speech', 'aborted', 'audio-capture'].includes(event.error)) {
             toast({
               title: "Speech Recognition Error",
-              description: `Error: ${event.error}. Continuing with recording...`,
+              description: `Error: ${event.error}. Attempting to continue...`,
               variant: "destructive"
             });
           }
           
-          // Restart recognition if it fails due to network issues and we're still recording
-          if ((event.error === 'network' || event.error === 'no-speech') && isRecording) {
-            console.log("Restarting speech recognition due to:", event.error);
+          // Auto-restart for recoverable errors
+          if (isRecording && restartAttempts < maxRestartAttempts) {
+            const restartDelay = Math.min(1000 * Math.pow(2, restartAttempts), 5000); // Exponential backoff
+            console.log(`Restarting speech recognition in ${restartDelay}ms (attempt ${restartAttempts + 1})`);
+            
             setTimeout(() => {
               if (recognitionRef.current && isRecording) {
                 try {
+                  restartAttempts++;
                   recognitionRef.current.start();
                 } catch (restartError) {
                   console.log("Could not restart recognition:", restartError);
                 }
               }
-            }, 1000);
+            }, restartDelay);
           }
         };
         
         recognition.onend = () => {
           console.log("Speech recognition ended");
           
-          // Auto-restart recognition if still recording and not manually stopped
-          if (isRecording) {
-            console.log("Auto-restarting speech recognition to continue listening...");
+          // Auto-restart if still recording
+          if (isRecording && restartAttempts < maxRestartAttempts) {
+            console.log("Auto-restarting speech recognition for continuity...");
             setTimeout(() => {
               if (recognitionRef.current && isRecording) {
                 try {
@@ -117,11 +154,12 @@ const Speech = () => {
                   console.log("Could not restart recognition:", restartError);
                 }
               }
-            }, 100); // Short delay to prevent rapid restart loops
-          } else {
-            console.log("Final transcript:", finalTranscript);
+            }, 250); // Minimal delay for seamless continuation
+          } else if (!isRecording) {
+            console.log("Recording stopped, final transcript:", finalTranscript);
           }
         };
+        
         recognitionRef.current = recognition;
         recognition.start();
       } else {
