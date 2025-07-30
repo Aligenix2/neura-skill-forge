@@ -110,43 +110,6 @@ export const SpeechAnalysis = ({ result, audioUrl }: SpeechAnalysisProps) => {
               </div>
             </CardContent>
           </Card>
-          {/* Charts Grid */}
-          <div className="grid lg:grid-cols-2 gap-8">
-            <Card className="relative bg-card/80 backdrop-blur-sm border-2 border-neura-purple/20 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-neura-purple/5 to-transparent"></div>
-              <CardHeader className="relative">
-                <CardTitle className="text-2xl font-bold text-card-foreground">Performance Breakdown</CardTitle>
-                <p className="text-muted-foreground">Visual representation of your speech metrics</p>
-              </CardHeader>
-              <CardContent className="relative">
-                <SpeechScorePieChart 
-                  vocabulary={result.vocabulary}
-                  fluency={result.fluency}
-                  confidence={result.confidence}
-                  clarity={result.clarity}
-                  grammar={result.grammar}
-                  overall={result.overall}
-                />
-              </CardContent>
-            </Card>
-
-            <Card className="relative bg-card/80 backdrop-blur-sm border-2 border-neura-cyan/20 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-neura-cyan/5 to-transparent"></div>
-              <CardHeader className="relative">
-                <CardTitle className="text-2xl font-bold text-card-foreground">Detailed Metrics</CardTitle>
-                <p className="text-muted-foreground">Individual scores for each assessment category</p>
-              </CardHeader>
-              <CardContent className="relative">
-                <SpeechMetricsChart
-                  vocabulary={result.vocabulary}
-                  fluency={result.fluency}
-                  confidence={result.confidence}
-                  clarity={result.clarity}
-                  grammar={result.grammar}
-                />
-              </CardContent>
-            </Card>
-          </div>
 
           {/* Audio Playback */}
           {audioUrl && (
