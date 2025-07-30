@@ -78,15 +78,49 @@ const Speech = () => {
         };
         recognition.onerror = (event: any) => {
           console.error("Speech recognition error:", event.error);
-          toast({
-            title: "Speech Recognition Error",
-            description: `Error: ${event.error}. Please try again.`,
-            variant: "destructive"
-          });
+          
+          // Only show error for critical issues, not network timeouts or no-speech
+          if (event.error !== 'network' && event.error !== 'no-speech' && event.error !== 'aborted') {
+            toast({
+              title: "Speech Recognition Error",
+              description: `Error: ${event.error}. Continuing with recording...`,
+              variant: "destructive"
+            });
+          }
+          
+          // Restart recognition if it fails due to network issues and we're still recording
+          if ((event.error === 'network' || event.error === 'no-speech') && isRecording) {
+            console.log("Restarting speech recognition due to:", event.error);
+            setTimeout(() => {
+              if (recognitionRef.current && isRecording) {
+                try {
+                  recognitionRef.current.start();
+                } catch (restartError) {
+                  console.log("Could not restart recognition:", restartError);
+                }
+              }
+            }, 1000);
+          }
         };
+        
         recognition.onend = () => {
           console.log("Speech recognition ended");
-          console.log("Final transcript:", finalTranscript);
+          
+          // Auto-restart recognition if still recording and not manually stopped
+          if (isRecording) {
+            console.log("Auto-restarting speech recognition to continue listening...");
+            setTimeout(() => {
+              if (recognitionRef.current && isRecording) {
+                try {
+                  recognitionRef.current.start();
+                } catch (restartError) {
+                  console.log("Could not restart recognition:", restartError);
+                }
+              }
+            }, 100); // Short delay to prevent rapid restart loops
+          } else {
+            console.log("Final transcript:", finalTranscript);
+          }
         };
         recognitionRef.current = recognition;
         recognition.start();
@@ -110,16 +144,21 @@ const Speech = () => {
         variant: "destructive"
       });
     }
-  }, [toast]);
+  }, [toast, isRecording]);
   const stopRecording = useCallback(async () => {
     console.log("Stopping recording...");
     if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
+      // First stop the speech recognition to prevent auto-restart
       setIsRecording(false);
-      setAnalysisState("processing");
+      
       if (recognitionRef.current) {
         recognitionRef.current.stop();
+        recognitionRef.current = null; // Clear reference to prevent restart
       }
+      
+      // Then stop the media recorder
+      mediaRecorderRef.current.stop();
+      setAnalysisState("processing");
 
       // Wait for audio processing and enhanced transcription
       setTimeout(async () => {
