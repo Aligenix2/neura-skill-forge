@@ -325,15 +325,14 @@ const Speech = () => {
             </CardContent>
           </Card>}
 
-        {analysisState === "complete" && analysisResult && <>
-            <SpeechAnalysis result={analysisResult} audioUrl={audioUrl} />
-            <div className="text-center mt-8">
-              <Button onClick={resetAnalysis} variant="neura" size="lg">
-                <RotateCcw className="w-5 h-5 mr-2" />
-                Try Again
-              </Button>
-            </div>
-          </>}
+        {analysisState === "complete" && analysisResult && (
+            <SpeechAnalysis 
+              result={analysisResult} 
+              audioUrl={audioUrl} 
+              topic={selectedTopic}
+              onRetry={resetAnalysis}
+            />
+          )}
       </div>
     </div>;
 };
