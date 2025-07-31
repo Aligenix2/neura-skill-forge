@@ -12,8 +12,17 @@ import { transcribeAudio, RealTimeTranscriber } from "@/lib/whisperTranscription
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SpeechAnalysisResult {
-  score: number;
-  feedback: string;
+  original_transcription: string;
+  overall_score: number;
+  category_scores: {
+    clarity: { score: number; explanation: string };
+    structure: { score: number; explanation: string };
+    vocabulary: { score: number; explanation: string };
+    grammar: { score: number; explanation: string };
+    relevance: { score: number; explanation: string };
+  };
+  positive_aspects: string[];
+  areas_to_improve: string[];
   suggested_phrases: Array<{
     original: string;
     suggested: string;

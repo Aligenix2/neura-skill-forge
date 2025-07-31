@@ -4,8 +4,17 @@ import { Play, Pause, Volume2, TrendingUp, AlertTriangle, CheckCircle } from "lu
 import { useState, useRef } from "react";
 
 interface SpeechAnalysisResult {
-  score: number;
-  feedback: string;
+  original_transcription: string;
+  overall_score: number;
+  category_scores: {
+    clarity: { score: number; explanation: string };
+    structure: { score: number; explanation: string };
+    vocabulary: { score: number; explanation: string };
+    grammar: { score: number; explanation: string };
+    relevance: { score: number; explanation: string };
+  };
+  positive_aspects: string[];
+  areas_to_improve: string[];
   suggested_phrases: Array<{
     original: string;
     suggested: string;
@@ -58,11 +67,11 @@ export const SpeechAnalysis = ({ result, audioUrl }: SpeechAnalysisProps) => {
         </CardHeader>
         <CardContent className="text-center">
           <div className="mb-6">
-            <div className={`text-6xl font-bold ${getScoreColor(result.score)} mb-2`}>
-              {result.score}/10
+            <div className={`text-6xl font-bold ${getScoreColor(result.overall_score)} mb-2`}>
+              {result.overall_score}/10
             </div>
             <div className="text-xl text-muted-foreground">
-              {getScoreDescription(result.score)}
+              {getScoreDescription(result.overall_score)}
             </div>
           </div>
         </CardContent>
@@ -102,18 +111,87 @@ export const SpeechAnalysis = ({ result, audioUrl }: SpeechAnalysisProps) => {
         </Card>
       )}
 
-      {/* Feedback Section */}
+      {/* Original Transcription */}
+      <Card className="bg-black/40 border-neura-cyan/30">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center">
+            <Volume2 className="w-5 h-5 mr-2" />
+            What You Said (Original Transcription)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+            <p className="text-muted-foreground leading-relaxed italic">
+              "{result.original_transcription}"
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Category Scores Breakdown */}
       <Card className="bg-black/40 border-neura-cyan/30">
         <CardHeader>
           <CardTitle className="text-white flex items-center">
             <TrendingUp className="w-5 h-5 mr-2" />
-            Overall Feedback
+            Detailed Score Breakdown
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground leading-relaxed">
-            {result.feedback}
-          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Object.entries(result.category_scores).map(([category, data]) => (
+              <div key={category} className="border border-neura-cyan/20 rounded-lg p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="text-white font-medium capitalize">
+                    {category.replace('_', ' & ')}
+                  </h4>
+                  <span className={`text-lg font-bold ${getScoreColor(data.score * 5)}`}>
+                    {data.score}/2
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground">{data.explanation}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Positive Aspects */}
+      <Card className="bg-black/40 border-neura-cyan/30">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center">
+            <CheckCircle className="w-5 h-5 mr-2" />
+            What You Did Well
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {result.positive_aspects.map((aspect, index) => (
+              <div key={index} className="flex items-start space-x-2">
+                <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                <p className="text-muted-foreground">{aspect}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Areas to Improve */}
+      <Card className="bg-black/40 border-neura-cyan/30">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center">
+            <AlertTriangle className="w-5 h-5 mr-2" />
+            Gentle Suggestions for Improvement
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {result.areas_to_improve.map((area, index) => (
+              <div key={index} className="flex items-start space-x-2">
+                <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
+                <p className="text-muted-foreground">{area}</p>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
@@ -123,7 +201,7 @@ export const SpeechAnalysis = ({ result, audioUrl }: SpeechAnalysisProps) => {
           <CardHeader>
             <CardTitle className="text-white flex items-center">
               <AlertTriangle className="w-5 h-5 mr-2" />
-              Suggested Improvements
+              Phrase Suggestions
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -160,7 +238,7 @@ export const SpeechAnalysis = ({ result, audioUrl }: SpeechAnalysisProps) => {
         <CardHeader>
           <CardTitle className="text-white flex items-center">
             <CheckCircle className="w-5 h-5 mr-2" />
-            Improved Version
+            Improved Version of Your Speech
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -169,6 +247,9 @@ export const SpeechAnalysis = ({ result, audioUrl }: SpeechAnalysisProps) => {
               {result.corrected_speech}
             </p>
           </div>
+          <p className="text-sm text-muted-foreground mt-2 italic">
+            Compare this with your original transcription above to see the improvements!
+          </p>
         </CardContent>
       </Card>
     </div>
