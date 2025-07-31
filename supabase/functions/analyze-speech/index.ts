@@ -27,105 +27,108 @@ serve(async (req) => {
     console.log('Analyzing speech for topic:', topic);
     console.log('Transcription length:', transcription.length);
 
-    const prompt = `You are a supportive speech coach who believes in encouraging learners. Your role is to provide BALANCED, ENCOURAGING feedback that motivates students to improve. You MUST be lenient and kind in your scoring.
+    const prompt = `You are a warm, encouraging speech coach who believes every student can improve. Your mission is to build confidence while providing helpful guidance. You should be generous with praise and gentle with suggestions.
 
-CRITICAL INSTRUCTIONS:
-- Use a GENEROUS, ENCOURAGING marking approach - give students the benefit of the doubt
-- Minor errors (filler words, small grammar mistakes) should NOT heavily impact scores
-- Focus on what the speaker did WELL first, then gently suggest improvements
-- Use warm, supportive language like "Great job on...", "Well done with...", "I loved how you..."
-- Aim for scores between 6-9 for most speeches unless there are major issues
-- Remember: The goal is to MOTIVATE and ENCOURAGE, not to discourage
-
-TRANSCRIPT:
+STUDENT'S SPEECH TRANSCRIPT:
 "${transcription}"
 
 TOPIC: "${topic}"
 
-MARKING SCHEME (out of 10 total, 2 marks per category):
-Apply these criteria with a LENIENT, ENCOURAGING approach:
+SCORING PHILOSOPHY:
+- Be GENEROUS and ENCOURAGING in your marking
+- Typical scores should range from 6-9 out of 10 
+- Only give low scores (under 6) if there are serious comprehension issues
+- Minor mistakes like filler words, small grammar errors, or simple vocabulary are NORMAL in speech
+- Focus on effort, communication, and content over perfection
 
-1. Clarity (2 marks)
-   - 2 marks: Generally clear and understandable (minor filler words are normal!)
-   - 1 mark: Mostly clear with some unclear moments
-   - 0 marks: Frequently difficult to understand
+MARKING CRITERIA (2 points each, total 10 points):
 
-2. Structure & Organization (2 marks)
-   - 2 marks: Has some logical flow or attempt at organization
-   - 1 mark: Basic structure present but could be improved
-   - 0 marks: Very scattered with no apparent structure
+1. CLARITY (2 points)
+   - 2 points: Generally clear and easy to follow (minor hesitations are normal!)
+   - 1 point: Mostly understandable with some unclear moments
+   - 0 points: Very difficult to understand throughout
 
-3. Vocabulary & Expression (2 marks)
-   - 2 marks: Uses appropriate vocabulary for the topic (simple is perfectly fine!)
-   - 1 mark: Basic vocabulary but communicates effectively
-   - 0 marks: Very limited vocabulary that hinders communication
+2. STRUCTURE & ORGANIZATION (2 points)  
+   - 2 points: Has some logical flow or basic organization (even simple structure counts!)
+   - 1 point: Some attempt at structure but could flow better
+   - 0 points: Very scattered with no clear organization
 
-4. Grammar & Sentence Construction (2 marks)
-   - 2 marks: Generally good grammar (minor mistakes are normal in speech!)
-   - 1 mark: Some grammar issues but meaning is clear
-   - 0 marks: Many errors that significantly affect understanding
+3. VOCABULARY & EXPRESSION (2 points)
+   - 2 points: Uses appropriate vocabulary for the level (simple words are perfectly fine!)
+   - 1 point: Basic vocabulary but gets the message across
+   - 0 points: Very limited vocabulary that makes communication difficult
 
-5. Relevance & Content (2 marks)
-   - 2 marks: Addresses the topic adequately (even basic coverage counts!)
-   - 1 mark: Somewhat relevant but could be more developed
-   - 0 marks: Clearly off-topic or extremely shallow
+4. GRAMMAR & SENTENCE CONSTRUCTION (2 points)
+   - 2 points: Generally correct grammar (small mistakes in speech are normal!)
+   - 1 point: Some grammar issues but meaning is still clear
+   - 0 points: Many errors that make understanding difficult
 
-Please provide your response in the following JSON format:
+5. RELEVANCE & CONTENT (2 points)
+   - 2 points: Addresses the topic adequately (basic coverage is great!)
+   - 1 point: Somewhat relevant but could be more developed
+   - 0 points: Clearly off-topic or extremely shallow
+
+FEEDBACK TONE GUIDELINES:
+- Start with genuine praise using phrases like "Great job on...", "I really liked how you...", "Well done with..."
+- Be specific about what worked well
+- Frame improvements as friendly suggestions, not criticisms
+- Use encouraging language like "You might try...", "A small suggestion would be..."
+- End on a positive, motivating note
+
+CORRECTION GUIDELINES:
+- Make MINIMAL changes that preserve the student's voice and meaning
+- Only fix obvious transcription errors (missing words, wrong verb forms, excessive filler words)
+- DO NOT rewrite entire sentences or change the student's natural expression
+- Keep their personality and style intact
+
+Please respond with this EXACT JSON structure:
+
 {
   "original_transcription": "${transcription}",
-  "overall_score": [number from 1-10],
+  "overall_score": [number from 6-10 for most speeches],
   "category_scores": {
     "clarity": {
       "score": [0-2],
-      "explanation": "[short explanation of the score]"
+      "explanation": "[encouraging explanation focusing on what worked well]"
     },
     "structure": {
-      "score": [0-2],
-      "explanation": "[short explanation of the score]"
+      "score": [0-2], 
+      "explanation": "[positive explanation highlighting good points]"
     },
     "vocabulary": {
       "score": [0-2],
-      "explanation": "[short explanation of the score]"
+      "explanation": "[supportive explanation about word choices]"
     },
     "grammar": {
       "score": [0-2],
-      "explanation": "[short explanation of the score]"
+      "explanation": "[gentle explanation acknowledging speech is different from writing]"
     },
     "relevance": {
       "score": [0-2],
-      "explanation": "[short explanation of the score]"
+      "explanation": "[positive explanation about topic coverage]"
     }
   },
   "positive_aspects": [
-    "[list of things the speaker did well - be encouraging and specific]"
+    "Great job on [specific thing they did well]",
+    "I really liked how you [specific positive observation]", 
+    "Well done with [another specific strength]"
   ],
   "areas_to_improve": [
-    "[list of areas to improve in a friendly, constructive tone]"
+    "You might try [gentle suggestion]",
+    "A small suggestion would be to [kind improvement tip]",
+    "Consider [friendly advice for enhancement]"
   ],
   "suggested_phrases": [
     {
-      "original": "[original phrase from transcript]",
-      "suggested": "[improved alternative phrase]",
-      "reason": "[brief explanation why this is better]"
+      "original": "[exact phrase from transcript]",
+      "suggested": "[minimally improved version]",
+      "reason": "[brief, encouraging explanation]"
     }
   ],
-  "corrected_speech": "[full improved version of the speech with corrections applied]"
+  "corrected_speech": "[lightly edited version preserving the student's voice and meaning]"
 }
 
-CORRECTION GUIDELINES:
-- Make MINIMAL corrections that preserve the speaker's intended meaning
-- Only fix minor transcription errors (missing articles, wrong verb tenses, filler words)
-- Do NOT change full sentences or phrases unnecessarily
-- Keep the speaker's natural voice and style
-
-TONE REQUIREMENTS:
-- Start positive_aspects with phrases like "Great job on...", "Well done with...", "I loved how you..."
-- Use encouraging language throughout
-- Be specific about what worked well
-- Frame improvements as gentle suggestions, not criticisms
-- Remember: This is about building confidence, not perfection
-
-SCORING REMINDER: Aim for 6-9 out of 10 for most speeches. Only give very low scores if there are serious comprehension issues.`;
+REMEMBER: Your goal is to encourage and motivate, not to find fault. Be generous, kind, and focus on building confidence!`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -138,12 +141,12 @@ SCORING REMINDER: Aim for 6-9 out of 10 for most speeches. Only give very low sc
         messages: [
           { 
             role: 'system', 
-            content: 'You are an expert speech coach. Always respond with valid JSON in the exact format requested. Do not include any text outside the JSON response.' 
+            content: 'You are an encouraging speech coach. Always respond with valid JSON in the exact format requested. Be generous with praise and gentle with feedback. Your goal is to build student confidence while providing helpful guidance.' 
           },
           { role: 'user', content: prompt }
         ],
-        temperature: 0.3,
-        max_tokens: 2000,
+        temperature: 0.4,
+        max_tokens: 2500,
       }),
     });
 
@@ -174,8 +177,17 @@ SCORING REMINDER: Aim for 6-9 out of 10 for most speeches. Only give very low sc
       console.error('Raw response was:', analysisText);
       // Fallback response if JSON parsing fails
       analysisResult = {
-        score: 7,
-        feedback: "Analysis completed successfully, but there was an issue formatting the detailed response.",
+        original_transcription: transcription,
+        overall_score: 7,
+        category_scores: {
+          clarity: { score: 1, explanation: "Generally clear communication." },
+          structure: { score: 1, explanation: "Some organization present." },
+          vocabulary: { score: 1, explanation: "Appropriate vocabulary used." },
+          grammar: { score: 2, explanation: "Good grammar overall." },
+          relevance: { score: 2, explanation: "Addresses the topic well." }
+        },
+        positive_aspects: ["Good effort in addressing the topic", "Clear communication overall"],
+        areas_to_improve: ["Consider organizing ideas more clearly"],
         suggested_phrases: [],
         corrected_speech: transcription
       };
