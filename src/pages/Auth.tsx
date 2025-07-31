@@ -9,7 +9,6 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [formData, setFormData] = useState({
@@ -19,8 +18,12 @@ const Auth = () => {
   });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { toast } = useToast();
+  const {
+    user
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -28,88 +31,90 @@ const Auth = () => {
       navigate("/dashboard");
     }
   }, [user, navigate]);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.id]: e.target.value
     });
   };
-
   const cleanupAuthState = () => {
-    Object.keys(localStorage).forEach((key) => {
+    Object.keys(localStorage).forEach(key => {
       if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
         localStorage.removeItem(key);
       }
     });
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       if (isSignUp) {
         // Clean up existing state
         cleanupAuthState();
         try {
-          await supabase.auth.signOut({ scope: 'global' });
+          await supabase.auth.signOut({
+            scope: 'global'
+          });
         } catch (err) {
           // Continue even if this fails
         }
-
         const redirectUrl = `${window.location.origin}/`;
-        const { data, error } = await supabase.auth.signUp({
+        const {
+          data,
+          error
+        } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
           options: {
             emailRedirectTo: redirectUrl,
             data: {
-              username: formData.username,
+              username: formData.username
             }
           }
         });
-
         if (error) throw error;
-
         if (data.user) {
           // Create profile entry
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .insert({
-              user_id: data.user.id,
-              username: formData.username,
-            });
-
+          const {
+            error: profileError
+          } = await supabase.from('profiles').insert({
+            user_id: data.user.id,
+            username: formData.username
+          });
           if (profileError) {
             console.error('Profile creation error:', profileError);
             // Don't throw here as the user is still created
           }
-
           toast({
             title: "Account created successfully!",
-            description: "Please check your email to verify your account.",
+            description: "Please check your email to verify your account."
           });
 
           // Clear form
-          setFormData({ username: "", email: "", password: "" });
+          setFormData({
+            username: "",
+            email: "",
+            password: ""
+          });
         }
       } else {
         // Sign in
         cleanupAuthState();
         try {
-          await supabase.auth.signOut({ scope: 'global' });
+          await supabase.auth.signOut({
+            scope: 'global'
+          });
         } catch (err) {
           // Continue even if this fails
         }
-
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const {
+          data,
+          error
+        } = await supabase.auth.signInWithPassword({
           email: formData.email,
-          password: formData.password,
+          password: formData.password
         });
-
         if (error) throw error;
-
         if (data.user) {
           window.location.href = '/dashboard';
         }
@@ -119,15 +124,13 @@ const Auth = () => {
       toast({
         variant: "destructive",
         title: isSignUp ? "Sign up failed" : "Sign in failed",
-        description: error.message || "An unexpected error occurred",
+        description: error.message || "An unexpected error occurred"
       });
     } finally {
       setLoading(false);
     }
   };
-
-  return (
-    <div className="min-h-screen bg-background flex">
+  return <div className="min-h-screen bg-background flex">
       {/* Left Side - Auth Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="w-full max-w-md space-y-4">
@@ -138,55 +141,27 @@ const Auth = () => {
             <p className="text-muted-foreground">
               {isSignUp ? "Start your AI-powered learning journey" : "Sign in to continue your learning"}
             </p>
-            <p className="text-sm text-muted-foreground/70">
-              Powered by Skillabs
-            </p>
+            <p className="text-sm text-slate-800">Powered by Skillabs</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {isSignUp && (
-              <div className="space-y-2">
+            {isSignUp && <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
-                <Input 
-                  id="username"
-                  type="text" 
-                  placeholder="Choose a username"
-                  className="h-12"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-            )}
+                <Input id="username" type="text" placeholder="Choose a username" className="h-12" value={formData.username} onChange={handleInputChange} required />
+              </div>}
             
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input 
-                id="email"
-                type="email" 
-                placeholder="Enter your email address"
-                className="h-12"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-              />
+              <Input id="email" type="email" placeholder="Enter your email address" className="h-12" value={formData.email} onChange={handleInputChange} required />
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input 
-                id="password"
-                type="password" 
-                placeholder="Enter your password"
-                className="h-12"
-                value={formData.password}
-                onChange={handleInputChange}
-                required
-              />
+              <Input id="password" type="password" placeholder="Enter your password" className="h-12" value={formData.password} onChange={handleInputChange} required />
             </div>
             
             <Button type="submit" variant="neura" className="w-full h-12" disabled={loading}>
-              {loading ? "Please wait..." : (isSignUp ? "Create Account" : "Sign In")}
+              {loading ? "Please wait..." : isSignUp ? "Create Account" : "Sign In"}
             </Button>
           </form>
 
@@ -194,23 +169,18 @@ const Auth = () => {
             <span className="text-muted-foreground">
               {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
             </span>
-            <button 
-              className="text-neura-cyan hover:underline font-medium"
-              onClick={() => setIsSignUp(!isSignUp)}
-            >
+            <button className="text-neura-cyan hover:underline font-medium" onClick={() => setIsSignUp(!isSignUp)}>
               {isSignUp ? "Sign in" : "Sign up"}
             </button>
           </div>
 
-          {isSignUp && (
-            <div className="text-xs text-muted-foreground text-center space-y-1">
+          {isSignUp && <div className="text-xs text-muted-foreground text-center space-y-1">
               <p>
                 By signing up, you agree to our{" "}
                 <a href="#" className="text-neura-cyan hover:underline">Terms of Service</a> and{" "}
                 <a href="#" className="text-neura-cyan hover:underline">Privacy Policy</a>.
               </p>
-            </div>
-          )}
+            </div>}
 
           <Link to="/">
             <Button variant="ghost" size="sm" className="group">
@@ -243,8 +213,6 @@ const Auth = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Auth;
