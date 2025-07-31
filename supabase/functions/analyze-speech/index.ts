@@ -75,11 +75,14 @@ FEEDBACK TONE GUIDELINES:
 - Use encouraging language like "You might try...", "A small suggestion would be..."
 - End on a positive, motivating note
 
-CORRECTION GUIDELINES:
+TRANSCRIPTION CORRECTION GUIDELINES:
+- AUTOMATICALLY detect and correct minor speech recognition errors (e.g., "my pinion" → "in my opinion", "crisphere" → "crisp air")
 - Make MINIMAL changes that preserve the student's voice and meaning
-- Only fix obvious transcription errors (missing words, wrong verb forms, excessive filler words)
+- Only fix obvious transcription errors (missing articles, wrong verb tenses, filler words)
+- Correct errors based on sentence context to determine what the speaker most likely meant
 - DO NOT rewrite entire sentences or change the student's natural expression
 - Keep their personality and style intact
+- Focus on making the text grammatically correct while preserving the original meaning
 
 Please respond with this EXACT JSON structure:
 
