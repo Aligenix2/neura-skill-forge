@@ -27,39 +27,48 @@ serve(async (req) => {
     console.log('Analyzing speech for topic:', topic);
     console.log('Transcription length:', transcription.length);
 
-    const prompt = `You are an expert speech coach analyzing a speech transcript. Use a balanced and slightly lenient marking style. Avoid overly strict grading. The goal is to encourage learners, not to discourage them.
+    const prompt = `You are a supportive speech coach who believes in encouraging learners. Your role is to provide BALANCED, ENCOURAGING feedback that motivates students to improve. You MUST be lenient and kind in your scoring.
+
+CRITICAL INSTRUCTIONS:
+- Use a GENEROUS, ENCOURAGING marking approach - give students the benefit of the doubt
+- Minor errors (filler words, small grammar mistakes) should NOT heavily impact scores
+- Focus on what the speaker did WELL first, then gently suggest improvements
+- Use warm, supportive language like "Great job on...", "Well done with...", "I loved how you..."
+- Aim for scores between 6-9 for most speeches unless there are major issues
+- Remember: The goal is to MOTIVATE and ENCOURAGE, not to discourage
 
 TRANSCRIPT:
 "${transcription}"
 
 TOPIC: "${topic}"
 
-Please analyze this speech using the following marking scheme out of 10, based on 5 categories (2 marks each):
+MARKING SCHEME (out of 10 total, 2 marks per category):
+Apply these criteria with a LENIENT, ENCOURAGING approach:
 
 1. Clarity (2 marks)
-   - 2 marks: Speech is clear, well-articulated, and easy to understand
-   - 1 mark: Mostly clear but has occasional mumbling, filler words, or unclear words
-   - 0 marks: Often unclear, hard to follow
+   - 2 marks: Generally clear and understandable (minor filler words are normal!)
+   - 1 mark: Mostly clear with some unclear moments
+   - 0 marks: Frequently difficult to understand
 
 2. Structure & Organization (2 marks)
-   - 2 marks: Has a clear beginning, middle, and end; ideas flow logically
-   - 1 mark: Some structure is present, but flow is inconsistent
-   - 0 marks: No clear structure, ideas feel scattered
+   - 2 marks: Has some logical flow or attempt at organization
+   - 1 mark: Basic structure present but could be improved
+   - 0 marks: Very scattered with no apparent structure
 
 3. Vocabulary & Expression (2 marks)
-   - 2 marks: Uses varied and appropriate vocabulary; expressive and engaging
-   - 1 mark: Simple or repetitive vocabulary, but gets the point across
-   - 0 marks: Poor vocabulary or word choice that weakens the message
+   - 2 marks: Uses appropriate vocabulary for the topic (simple is perfectly fine!)
+   - 1 mark: Basic vocabulary but communicates effectively
+   - 0 marks: Very limited vocabulary that hinders communication
 
 4. Grammar & Sentence Construction (2 marks)
-   - 2 marks: No or very few grammatical mistakes; natural phrasing
-   - 1 mark: Some grammar issues, but meaning remains clear
-   - 0 marks: Many errors that affect understanding
+   - 2 marks: Generally good grammar (minor mistakes are normal in speech!)
+   - 1 mark: Some grammar issues but meaning is clear
+   - 0 marks: Many errors that significantly affect understanding
 
 5. Relevance & Content (2 marks)
-   - 2 marks: Speech fully addresses the topic with meaningful ideas or examples
-   - 1 mark: Partially addresses the topic or lacks depth
-   - 0 marks: Off-topic or content is too shallow
+   - 2 marks: Addresses the topic adequately (even basic coverage counts!)
+   - 1 mark: Somewhat relevant but could be more developed
+   - 0 marks: Clearly off-topic or extremely shallow
 
 Please provide your response in the following JSON format:
 {
@@ -103,7 +112,20 @@ Please provide your response in the following JSON format:
   "corrected_speech": "[full improved version of the speech with corrections applied]"
 }
 
-IMPORTANT: Be encouraging and supportive in your feedback. Focus on what the speaker did well before suggesting improvements. Use a friendly, constructive tone throughout. Provide at least 3-5 suggested phrase improvements and ensure the corrected speech maintains the speaker's intended meaning while improving clarity and impact.`;
+CORRECTION GUIDELINES:
+- Make MINIMAL corrections that preserve the speaker's intended meaning
+- Only fix minor transcription errors (missing articles, wrong verb tenses, filler words)
+- Do NOT change full sentences or phrases unnecessarily
+- Keep the speaker's natural voice and style
+
+TONE REQUIREMENTS:
+- Start positive_aspects with phrases like "Great job on...", "Well done with...", "I loved how you..."
+- Use encouraging language throughout
+- Be specific about what worked well
+- Frame improvements as gentle suggestions, not criticisms
+- Remember: This is about building confidence, not perfection
+
+SCORING REMINDER: Aim for 6-9 out of 10 for most speeches. Only give very low scores if there are serious comprehension issues.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
