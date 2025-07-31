@@ -15,8 +15,11 @@ const ComingSoonSignedIn = () => {
             <h1 className="text-6xl font-bold bg-gradient-neura bg-clip-text text-transparent">
               COMING SOON!
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-2">
               We're working hard to bring you this amazing feature. Stay tuned for updates!
+            </p>
+            <p className="text-sm text-muted-foreground/70">
+              Powered by Skillabs
             </p>
           </div>
 
