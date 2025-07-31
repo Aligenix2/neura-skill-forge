@@ -310,12 +310,12 @@ export const SpeechAnalysis = ({ result, audioUrl, topic, onRetry }: SpeechAnaly
 
         {/* Action Buttons */}
         <div className="text-center">
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-md mx-auto">
             <Button 
               onClick={onRetry}
               variant="neura" 
               size="lg"
-              className="shadow-neura-glow hover:shadow-neura-glow group"
+              className="w-full sm:w-auto shadow-neura-glow hover:shadow-neura-glow group"
             >
               <RefreshCw className="w-5 h-5 mr-2 group-hover:rotate-180 transition-transform duration-300" />
               Practice Again
@@ -326,14 +326,14 @@ export const SpeechAnalysis = ({ result, audioUrl, topic, onRetry }: SpeechAnaly
               variant="neura-outline" 
               size="lg"
               disabled={isGeneratingPDF}
-              className="shadow-neura hover:shadow-neura-glow group"
+              className="w-full sm:w-auto shadow-neura hover:shadow-neura-glow group border-neura-cyan text-neura-cyan hover:bg-neura-cyan hover:text-white"
             >
               <Download className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" />
-              {isGeneratingPDF ? 'Generating...' : 'Download Report (PDF)'}
+              {isGeneratingPDF ? 'Generating PDF...' : 'Download Report (PDF)'}
             </Button>
           </div>
           
-          <p className="text-sm text-muted-foreground mt-4">
+          <p className="text-sm text-muted-foreground mt-4 max-w-lg mx-auto">
             Ready to improve your score? Try the same topic again or download your detailed analysis report!
           </p>
         </div>
