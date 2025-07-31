@@ -88,9 +88,18 @@ Provide at least 3-5 suggested phrase improvements and ensure the corrected spee
     // Parse the JSON response from OpenAI
     let analysisResult;
     try {
-      analysisResult = JSON.parse(analysisText);
+      // Clean the response by removing markdown code blocks if present
+      let cleanedResponse = analysisText.trim();
+      if (cleanedResponse.startsWith('```json')) {
+        cleanedResponse = cleanedResponse.replace(/^```json\s*/i, '').replace(/\s*```$/, '');
+      } else if (cleanedResponse.startsWith('```')) {
+        cleanedResponse = cleanedResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      analysisResult = JSON.parse(cleanedResponse);
     } catch (parseError) {
       console.error('Failed to parse OpenAI response as JSON:', parseError);
+      console.error('Raw response was:', analysisText);
       // Fallback response if JSON parsing fails
       analysisResult = {
         score: 7,
