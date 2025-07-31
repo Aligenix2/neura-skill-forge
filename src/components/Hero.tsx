@@ -2,10 +2,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import rocketImage from "@/assets/rocket-3d.png";
-
 const Hero = () => {
-  return (
-    <section className="pt-24 pb-16 min-h-screen flex items-center bg-gradient-neura-secondary">
+  return <section className="pt-24 pb-16 min-h-screen flex items-center bg-gradient-neura-secondary">
       <div className="container mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
@@ -23,9 +21,7 @@ const Hero = () => {
               Start with speech enhancement and discover the power of AI-driven skill development.
             </p>
             
-            <p className="text-sm text-muted-foreground/70">
-              Powered by Skillabs
-            </p>
+            <p className="text-sm text-slate-800">Powered by Skillabs</p>
             
             <div className="flex flex-col sm:flex-row gap-4">
               <Link to="/auth">
@@ -62,16 +58,10 @@ const Hero = () => {
           
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-neura rounded-3xl blur-3xl opacity-20 animate-pulse"></div>
-            <img 
-              src={rocketImage} 
-              alt="3D Rocket - Launch Your Learning Journey"
-              className="relative rounded-3xl shadow-neura border border-neura-cyan/20 w-full h-auto"
-            />
+            <img src={rocketImage} alt="3D Rocket - Launch Your Learning Journey" className="relative rounded-3xl shadow-neura border border-neura-cyan/20 w-full h-auto" />
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default Hero;
