@@ -27,114 +27,118 @@ serve(async (req) => {
     console.log('Analyzing speech for topic:', topic);
     console.log('Transcription length:', transcription.length);
 
-    const prompt = `You are a warm, encouraging speech coach who believes every student can improve. Your mission is to build confidence while providing helpful guidance. You should be generous with praise and gentle with suggestions.
+    const prompt = `You are an encouraging speech coach analyzing a student's speech performance. Your goal is to provide constructive, balanced feedback that motivates students while helping them improve.
 
 STUDENT'S SPEECH TRANSCRIPT:
 "${transcription}"
 
-TOPIC: "${topic}"
+TOPIC ASSIGNED: "${topic}"
 
-SCORING PHILOSOPHY:
-- Be GENEROUS and ENCOURAGING in your marking
-- Typical scores should range from 6-9 out of 10 
-- Only give low scores (under 6) if there are serious comprehension issues
-- Minor mistakes like filler words, small grammar errors, or simple vocabulary are NORMAL in speech
-- Focus on effort, communication, and content over perfection
+ANALYSIS REQUIREMENTS:
 
-MARKING CRITERIA (2 points each, total 10 points):
+🔍 1. SPEECH UNDERSTANDING & CONTEXT
+- Analyze if the student addressed the given topic
+- Determine if the response is complete, incomplete, or irrelevant
+- Consider the depth and relevance of content provided
 
-1. CLARITY (2 points)
-   - 2 points: Generally clear and easy to follow (minor hesitations are normal!)
-   - 1 point: Mostly understandable with some unclear moments
-   - 0 points: Very difficult to understand throughout
+🧠 2. AUTOMATIC TRANSCRIPTION CORRECTION
+- Auto-correct obvious speech recognition errors (e.g., "my pinion" → "in my opinion")
+- Fix minimal grammar issues, add punctuation, and correct obvious misrecognitions
+- Preserve the student's original intent, voice, and natural speaking style
+- DO NOT rewrite entire phrases or change the core meaning
 
-2. STRUCTURE & ORGANIZATION (2 points)  
-   - 2 points: Has some logical flow or basic organization (even simple structure counts!)
-   - 1 point: Some attempt at structure but could flow better
-   - 0 points: Very scattered with no clear organization
+✅ 3. MARKING SCHEME (10 POINTS TOTAL - 2 POINTS PER CATEGORY)
 
-3. VOCABULARY & EXPRESSION (2 points)
-   - 2 points: Uses appropriate vocabulary for the level (simple words are perfectly fine!)
-   - 1 point: Basic vocabulary but gets the message across
-   - 0 points: Very limited vocabulary that makes communication difficult
+Score each category from 0-2 points:
 
-4. GRAMMAR & SENTENCE CONSTRUCTION (2 points)
-   - 2 points: Generally correct grammar (small mistakes in speech are normal!)
-   - 1 point: Some grammar issues but meaning is still clear
-   - 0 points: Many errors that make understanding difficult
+A) CLARITY (2 points max)
+- 2 points: Speech is clear and easy to understand
+- 1 point: Mostly understandable with some unclear moments  
+- 0 points: Difficult to understand throughout
 
-5. RELEVANCE & CONTENT (2 points)
-   - 2 points: Addresses the topic adequately (basic coverage is great!)
-   - 1 point: Somewhat relevant but could be more developed
-   - 0 points: Clearly off-topic or extremely shallow
+B) STRUCTURE & ORGANIZATION (2 points max)
+- 2 points: Well-organized with logical flow of ideas
+- 1 point: Some structure present but could be improved
+- 0 points: Lacks clear organization or structure
 
-FEEDBACK TONE GUIDELINES:
-- Start with genuine praise using phrases like "Great job on...", "I really liked how you...", "Well done with..."
-- Be specific about what worked well
-- Frame improvements as friendly suggestions, not criticisms
-- Use encouraging language like "You might try...", "A small suggestion would be..."
-- End on a positive, motivating note
+C) VOCABULARY & EXPRESSION (2 points max)
+- 2 points: Uses appropriate and varied vocabulary effectively
+- 1 point: Basic vocabulary that conveys the message adequately
+- 0 points: Limited vocabulary that hinders communication
 
-TRANSCRIPTION CORRECTION & PUNCTUATION GUIDELINES:
-- AUTOMATICALLY detect and correct minor speech recognition errors (e.g., "my pinion" → "in my opinion", "crisphere" → "crisp air", "join quite" → "enjoy quiet")
-- ADD proper punctuation to make the text readable (periods, commas, question marks, exclamation points)
-- Correct obvious word misrecognitions based on sentence context
-- Fix missing articles (a, an, the), wrong verb tenses, and excessive filler words
-- Capitalize proper nouns and sentence beginnings
-- Make MINIMAL changes that preserve the student's voice and meaning
-- DO NOT rewrite entire sentences or change the student's natural expression
-- Keep their personality and speaking style intact
-- Focus on making the text grammatically correct and properly punctuated while preserving the original meaning
-- The corrected version should read like natural, properly punctuated speech
+D) GRAMMAR & SENTENCE CONSTRUCTION (2 points max)
+- 2 points: Generally correct grammar and well-formed sentences
+- 1 point: Some grammar issues but meaning remains clear
+- 0 points: Frequent errors that affect comprehension
+
+E) RELEVANCE & CONTENT (2 points max)
+- 2 points: Directly addresses the topic with relevant content
+- 1 point: Somewhat relevant but could be more developed
+- 0 points: Off-topic or extremely minimal content
+
+💬 4. BALANCED FEEDBACK TONE
+- Use encouraging language: "Nice job with...", "Well expressed when you said...", "I liked how you..."
+- Provide specific, actionable improvement suggestions
+- Be constructive, not critical
+- Maintain a supportive, coach-like tone
+
+🚨 5. EDGE CASE HANDLING
+For very short, unclear, or off-topic responses:
+- Assign appropriate low scores with clear reasoning
+- Gently explain why the speech didn't contain enough analyzable content
+- Encourage the student to try again with more detail
+- Remain supportive and motivating
+
+CRITICAL REQUIREMENT: The overall_score MUST equal the sum of all category scores.
 
 Please respond with this EXACT JSON structure:
 
 {
   "original_transcription": "${transcription}",
-  "overall_score": [number from 6-10 for most speeches],
+  "overall_score": [sum of all category scores],
   "category_scores": {
     "clarity": {
       "score": [0-2],
-      "explanation": "[encouraging explanation focusing on what worked well]"
+      "explanation": "[encouraging explanation of the score]"
     },
     "structure": {
       "score": [0-2], 
-      "explanation": "[positive explanation highlighting good points]"
+      "explanation": "[constructive explanation of the score]"
     },
     "vocabulary": {
       "score": [0-2],
-      "explanation": "[supportive explanation about word choices]"
+      "explanation": "[supportive explanation of the score]"
     },
     "grammar": {
       "score": [0-2],
-      "explanation": "[gentle explanation acknowledging speech is different from writing]"
+      "explanation": "[helpful explanation of the score]"
     },
     "relevance": {
       "score": [0-2],
-      "explanation": "[positive explanation about topic coverage]"
+      "explanation": "[encouraging explanation of topic coverage]"
     }
   },
   "positive_aspects": [
-    "Great job on [specific thing they did well]",
-    "I really liked how you [specific positive observation]", 
-    "Well done with [another specific strength]"
+    "Nice job with [specific strength]",
+    "Well expressed when you said [specific example]", 
+    "I liked how you [specific positive observation]"
   ],
   "areas_to_improve": [
-    "You might try [gentle suggestion]",
-    "A small suggestion would be to [kind improvement tip]",
-    "Consider [friendly advice for enhancement]"
+    "[Constructive suggestion for improvement]",
+    "[Specific advice for enhancement]",
+    "[Actionable tip for better performance]"
   ],
   "suggested_phrases": [
     {
       "original": "[exact phrase from transcript]",
-      "suggested": "[minimally improved version]",
-      "reason": "[brief, encouraging explanation]"
+      "suggested": "[improved version]",
+      "reason": "[brief explanation of improvement]"
     }
   ],
-  "corrected_speech": "[properly punctuated and lightly edited version preserving the student's voice and meaning]"
+  "corrected_speech": "[properly punctuated and lightly corrected version preserving student's voice and meaning]"
 }
 
-REMEMBER: Your goal is to encourage and motivate, not to find fault. Be generous, kind, and focus on building confidence!`;
+Remember: Be encouraging, specific, and constructive. Focus on building confidence while providing helpful guidance for improvement.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -147,11 +151,11 @@ REMEMBER: Your goal is to encourage and motivate, not to find fault. Be generous
         messages: [
           { 
             role: 'system', 
-            content: 'You are an encouraging speech coach. Always respond with valid JSON in the exact format requested. Be generous with praise and gentle with feedback. Your goal is to build student confidence while providing helpful guidance. Focus heavily on transcription correction and proper punctuation.' 
+            content: 'You are an encouraging speech coach who provides detailed, constructive analysis. Always respond with valid JSON in the exact format requested. Be specific, balanced, and motivating in your feedback. Ensure the overall score equals the sum of category scores.' 
           },
           { role: 'user', content: prompt }
         ],
-        temperature: 0.4,
+        temperature: 0.3,
         max_tokens: 2500,
       }),
     });
@@ -178,28 +182,42 @@ REMEMBER: Your goal is to encourage and motivate, not to find fault. Be generous
       }
       
       analysisResult = JSON.parse(cleanedResponse);
+      
+      // Verify that overall_score equals sum of category scores
+      const categorySum = 
+        analysisResult.category_scores.clarity.score +
+        analysisResult.category_scores.structure.score +
+        analysisResult.category_scores.vocabulary.score +
+        analysisResult.category_scores.grammar.score +
+        analysisResult.category_scores.relevance.score;
+      
+      if (analysisResult.overall_score !== categorySum) {
+        console.log('Correcting overall score to match category sum');
+        analysisResult.overall_score = categorySum;
+      }
+      
     } catch (parseError) {
       console.error('Failed to parse OpenAI response as JSON:', parseError);
       console.error('Raw response was:', analysisText);
       // Fallback response if JSON parsing fails
       analysisResult = {
         original_transcription: transcription,
-        overall_score: 7,
+        overall_score: 4,
         category_scores: {
-          clarity: { score: 1, explanation: "Generally clear communication." },
-          structure: { score: 1, explanation: "Some organization present." },
-          vocabulary: { score: 1, explanation: "Appropriate vocabulary used." },
-          grammar: { score: 2, explanation: "Good grammar overall." },
-          relevance: { score: 2, explanation: "Addresses the topic well." }
+          clarity: { score: 1, explanation: "The speech was mostly understandable." },
+          structure: { score: 1, explanation: "Some organization was present in your speech." },
+          vocabulary: { score: 1, explanation: "You used appropriate basic vocabulary." },
+          grammar: { score: 1, explanation: "Grammar was generally acceptable with minor issues." },
+          relevance: { score: 0, explanation: "The response could have addressed the topic more directly." }
         },
-        positive_aspects: ["Good effort in addressing the topic", "Clear communication overall"],
-        areas_to_improve: ["Consider organizing ideas more clearly"],
+        positive_aspects: ["You made an effort to speak", "Your pronunciation was clear"],
+        areas_to_improve: ["Try to develop your ideas more fully", "Consider organizing your thoughts before speaking"],
         suggested_phrases: [],
         corrected_speech: transcription
       };
     }
 
-    console.log('Parsed analysis result:', analysisResult);
+    console.log('Final analysis result:', analysisResult);
 
     return new Response(JSON.stringify(analysisResult), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
