@@ -10,29 +10,53 @@ import ComingSoonSignedIn from "./pages/ComingSoonSignedIn";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Speech from "./pages/Speech";
+import { AuthProvider } from "@/hooks/useAuth";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/coming-soon" element={<ComingSoon />} />
-          <Route path="/coming-soon-signed-in" element={<ComingSoonSignedIn />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/speech" element={<Speech />} />
-          <Route path="/coding" element={<ComingSoonSignedIn />} />
-          <Route path="/entrepreneurship" element={<ComingSoonSignedIn />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/coming-soon" element={<ComingSoon />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/speech" element={
+              <ProtectedRoute>
+                <Speech />
+              </ProtectedRoute>
+            } />
+            <Route path="/coding" element={
+              <ProtectedRoute>
+                <ComingSoonSignedIn />
+              </ProtectedRoute>
+            } />
+            <Route path="/entrepreneurship" element={
+              <ProtectedRoute>
+                <ComingSoonSignedIn />
+              </ProtectedRoute>
+            } />
+            <Route path="/coming-soon-signed-in" element={
+              <ProtectedRoute>
+                <ComingSoonSignedIn />
+              </ProtectedRoute>
+            } />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

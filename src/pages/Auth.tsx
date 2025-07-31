@@ -5,7 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Mic, Lightbulb, Code, ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -14,7 +17,17 @@ const Auth = () => {
     email: "",
     password: ""
   });
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -23,11 +36,94 @@ const Auth = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const cleanupAuthState = () => {
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        localStorage.removeItem(key);
+      }
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // No real verification - just navigate to dashboard with username
-    const username = isSignUp ? formData.username : formData.email.split('@')[0];
-    navigate("/dashboard", { state: { username } });
+    setLoading(true);
+
+    try {
+      if (isSignUp) {
+        // Clean up existing state
+        cleanupAuthState();
+        try {
+          await supabase.auth.signOut({ scope: 'global' });
+        } catch (err) {
+          // Continue even if this fails
+        }
+
+        const redirectUrl = `${window.location.origin}/`;
+        const { data, error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            emailRedirectTo: redirectUrl,
+            data: {
+              username: formData.username,
+            }
+          }
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+          // Create profile entry
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              user_id: data.user.id,
+              username: formData.username,
+            });
+
+          if (profileError) {
+            console.error('Profile creation error:', profileError);
+            // Don't throw here as the user is still created
+          }
+
+          toast({
+            title: "Account created successfully!",
+            description: "Please check your email to verify your account.",
+          });
+
+          // Clear form
+          setFormData({ username: "", email: "", password: "" });
+        }
+      } else {
+        // Sign in
+        cleanupAuthState();
+        try {
+          await supabase.auth.signOut({ scope: 'global' });
+        } catch (err) {
+          // Continue even if this fails
+        }
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+          window.location.href = '/dashboard';
+        }
+      }
+    } catch (error: any) {
+      console.error('Auth error:', error);
+      toast({
+        variant: "destructive",
+        title: isSignUp ? "Sign up failed" : "Sign in failed",
+        description: error.message || "An unexpected error occurred",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -86,8 +182,8 @@ const Auth = () => {
               />
             </div>
             
-            <Button type="submit" variant="neura" className="w-full h-12">
-              {isSignUp ? "Create Account" : "Sign In"}
+            <Button type="submit" variant="neura" className="w-full h-12" disabled={loading}>
+              {loading ? "Please wait..." : (isSignUp ? "Create Account" : "Sign In")}
             </Button>
           </form>
 

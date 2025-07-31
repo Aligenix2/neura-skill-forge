@@ -1,12 +1,36 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mic, Code, Lightbulb, LogOut, Zap } from "lucide-react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const username = location.state?.username || "User";
+  const { user } = useAuth();
+  const [username, setUsername] = useState("User");
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (profile?.username) {
+          setUsername(profile.username);
+        } else {
+          // Fallback to email username
+          setUsername(user.email?.split('@')[0] || "User");
+        }
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
 
   const learningOptions = [
     {
@@ -32,8 +56,29 @@ const Dashboard = () => {
     }
   ];
 
-  const handleSignOut = () => {
-    navigate("/auth");
+  const handleSignOut = async () => {
+    try {
+      // Clean up auth state
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      // Attempt global sign out
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Ignore errors
+      }
+      
+      // Force page reload for a clean state
+      window.location.href = '/auth';
+    } catch (error) {
+      console.error('Sign out error:', error);
+      // Fallback
+      window.location.href = '/auth';
+    }
   };
 
   return (
