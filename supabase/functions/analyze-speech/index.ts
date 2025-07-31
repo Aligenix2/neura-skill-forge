@@ -27,12 +27,14 @@ serve(async (req) => {
     console.log('Analyzing speech for topic:', topic);
     console.log('Transcription length:', transcription.length);
 
-    const prompt = `You are an expert speech coach analyzing a speech transcript. Please provide detailed and balanced feedback on the following speech about "${topic}":
+    const prompt = `You are an expert speech coach analyzing a speech transcript. Use a balanced and slightly lenient marking style. Avoid overly strict grading. The goal is to encourage learners, not to discourage them.
 
 TRANSCRIPT:
 "${transcription}"
 
-When analyzing this speech, please follow the marking scheme below. Evaluate the speech and assign a score out of 10, based on the following 5 equally weighted criteria (2 marks each):
+TOPIC: "${topic}"
+
+Please analyze this speech using the following marking scheme out of 10, based on 5 categories (2 marks each):
 
 1. Clarity (2 marks)
    - 2 marks: Speech is clear, well-articulated, and easy to understand
@@ -59,10 +61,38 @@ When analyzing this speech, please follow the marking scheme below. Evaluate the
    - 1 mark: Partially addresses the topic or lacks depth
    - 0 marks: Off-topic or content is too shallow
 
-Please analyze this speech and provide your response in the following JSON format:
+Please provide your response in the following JSON format:
 {
-  "score": [number from 1-10],
-  "feedback": "[balanced summary highlighting both strengths and areas for improvement]",
+  "original_transcription": "${transcription}",
+  "overall_score": [number from 1-10],
+  "category_scores": {
+    "clarity": {
+      "score": [0-2],
+      "explanation": "[short explanation of the score]"
+    },
+    "structure": {
+      "score": [0-2],
+      "explanation": "[short explanation of the score]"
+    },
+    "vocabulary": {
+      "score": [0-2],
+      "explanation": "[short explanation of the score]"
+    },
+    "grammar": {
+      "score": [0-2],
+      "explanation": "[short explanation of the score]"
+    },
+    "relevance": {
+      "score": [0-2],
+      "explanation": "[short explanation of the score]"
+    }
+  },
+  "positive_aspects": [
+    "[list of things the speaker did well - be encouraging and specific]"
+  ],
+  "areas_to_improve": [
+    "[list of areas to improve in a friendly, constructive tone]"
+  ],
   "suggested_phrases": [
     {
       "original": "[original phrase from transcript]",
@@ -73,7 +103,7 @@ Please analyze this speech and provide your response in the following JSON forma
   "corrected_speech": "[full improved version of the speech with corrections applied]"
 }
 
-IMPORTANT: Provide balanced feedback that acknowledges what the speaker did well alongside areas for improvement. Be encouraging while being constructive. Provide at least 3-5 suggested phrase improvements and ensure the corrected speech maintains the speaker's intended meaning while improving clarity and impact.`;
+IMPORTANT: Be encouraging and supportive in your feedback. Focus on what the speaker did well before suggesting improvements. Use a friendly, constructive tone throughout. Provide at least 3-5 suggested phrase improvements and ensure the corrected speech maintains the speaker's intended meaning while improving clarity and impact.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
