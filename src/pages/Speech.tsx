@@ -9,7 +9,18 @@ import { SpeechRecording } from "@/components/speech/SpeechRecording";
 import { SpeechAnalysis } from "@/components/speech/SpeechAnalysis";
 import { useToast } from "@/hooks/use-toast";
 import { transcribeAudio, RealTimeTranscriber } from "@/lib/whisperTranscription";
-import { analyzeTranscript, SpeechAnalysisResult } from "@/lib/speechAnalysis";
+import { supabase } from "@/integrations/supabase/client";
+
+export interface SpeechAnalysisResult {
+  score: number;
+  feedback: string;
+  suggested_phrases: Array<{
+    original: string;
+    suggested: string;
+    reason: string;
+  }>;
+  corrected_speech: string;
+}
 export type SpeechMode = "storytelling" | "opinion" | null;
 export type AnalysisState = "idle" | "recording" | "processing" | "complete";
 const Speech = () => {
@@ -221,8 +232,19 @@ const Speech = () => {
             return;
           }
           
-          // Use enhanced AI-powered analysis with topic and mode
-          const result = await analyzeTranscript(finalTranscript, audioBlob, selectedTopic, mode as 'opinion' | 'storytelling');
+          // Use Supabase Edge Function for AI-powered analysis
+          const { data: result, error } = await supabase.functions.invoke('analyze-speech', {
+            body: { 
+              transcription: finalTranscript, 
+              topic: selectedTopic 
+            }
+          });
+          
+          if (error) {
+            console.error("Edge function error:", error);
+            throw new Error(error.message || "Failed to analyze speech");
+          }
+          
           setAnalysisResult(result);
           setAnalysisState("complete");
           

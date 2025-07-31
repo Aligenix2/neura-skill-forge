@@ -1,1 +1,4 @@
 project_id = "lahkiuxwyzctdzcpmcim"
+
+[functions.analyze-speech]
+verify_jwt = false
