@@ -75,14 +75,17 @@ FEEDBACK TONE GUIDELINES:
 - Use encouraging language like "You might try...", "A small suggestion would be..."
 - End on a positive, motivating note
 
-TRANSCRIPTION CORRECTION GUIDELINES:
-- AUTOMATICALLY detect and correct minor speech recognition errors (e.g., "my pinion" → "in my opinion", "crisphere" → "crisp air")
+TRANSCRIPTION CORRECTION & PUNCTUATION GUIDELINES:
+- AUTOMATICALLY detect and correct minor speech recognition errors (e.g., "my pinion" → "in my opinion", "crisphere" → "crisp air", "join quite" → "enjoy quiet")
+- ADD proper punctuation to make the text readable (periods, commas, question marks, exclamation points)
+- Correct obvious word misrecognitions based on sentence context
+- Fix missing articles (a, an, the), wrong verb tenses, and excessive filler words
+- Capitalize proper nouns and sentence beginnings
 - Make MINIMAL changes that preserve the student's voice and meaning
-- Only fix obvious transcription errors (missing articles, wrong verb tenses, filler words)
-- Correct errors based on sentence context to determine what the speaker most likely meant
 - DO NOT rewrite entire sentences or change the student's natural expression
-- Keep their personality and style intact
-- Focus on making the text grammatically correct while preserving the original meaning
+- Keep their personality and speaking style intact
+- Focus on making the text grammatically correct and properly punctuated while preserving the original meaning
+- The corrected version should read like natural, properly punctuated speech
 
 Please respond with this EXACT JSON structure:
 
@@ -128,7 +131,7 @@ Please respond with this EXACT JSON structure:
       "reason": "[brief, encouraging explanation]"
     }
   ],
-  "corrected_speech": "[lightly edited version preserving the student's voice and meaning]"
+  "corrected_speech": "[properly punctuated and lightly edited version preserving the student's voice and meaning]"
 }
 
 REMEMBER: Your goal is to encourage and motivate, not to find fault. Be generous, kind, and focus on building confidence!`;
@@ -144,7 +147,7 @@ REMEMBER: Your goal is to encourage and motivate, not to find fault. Be generous
         messages: [
           { 
             role: 'system', 
-            content: 'You are an encouraging speech coach. Always respond with valid JSON in the exact format requested. Be generous with praise and gentle with feedback. Your goal is to build student confidence while providing helpful guidance.' 
+            content: 'You are an encouraging speech coach. Always respond with valid JSON in the exact format requested. Be generous with praise and gentle with feedback. Your goal is to build student confidence while providing helpful guidance. Focus heavily on transcription correction and proper punctuation.' 
           },
           { role: 'user', content: prompt }
         ],
