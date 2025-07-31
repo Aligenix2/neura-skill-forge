@@ -105,11 +105,8 @@ const Dashboard = () => {
           <h1 className="text-4xl font-bold text-foreground">
             Welcome, {username}!
           </h1>
-          <p className="text-xl text-muted-foreground mb-2">
+          <p className="text-xl text-muted-foreground">
             What would you like to learn today?
-          </p>
-          <p className="text-sm text-muted-foreground/70">
-            Powered by Skillabs
           </p>
         </div>
 

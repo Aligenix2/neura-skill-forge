@@ -309,17 +309,6 @@ const Speech = () => {
       </header>
 
       <div className="container mx-auto px-6 py-8 pt-24">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-neura bg-clip-text text-transparent mb-4">
-            Speech Development Center
-          </h1>
-          <p className="text-muted-foreground mb-2">
-            Enhance your communication skills with AI-powered feedback and coaching
-          </p>
-          <p className="text-sm text-muted-foreground/70">
-            Powered by Skillabs
-          </p>
-        </div>
         
 
         {analysisState === "idle" && !mode && <SpeechModeSelection onModeSelect={setMode} />}

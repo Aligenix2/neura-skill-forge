@@ -15,9 +15,6 @@ const ComingSoon = () => {
               We're working hard to bring you an amazing demo experience. 
               Stay tuned for exciting updates!
             </p>
-            <p className="text-sm text-muted-foreground/70 mt-4">
-              Powered by Skillabs
-            </p>
           </div>
           
           <div className="w-32 h-32 mx-auto rounded-full bg-gradient-neura flex items-center justify-center animate-pulse">
