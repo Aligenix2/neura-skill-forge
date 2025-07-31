@@ -27,15 +27,42 @@ serve(async (req) => {
     console.log('Analyzing speech for topic:', topic);
     console.log('Transcription length:', transcription.length);
 
-    const prompt = `You are an expert speech coach analyzing a speech transcript. Please provide detailed feedback on the following speech about "${topic}":
+    const prompt = `You are an expert speech coach analyzing a speech transcript. Please provide detailed and balanced feedback on the following speech about "${topic}":
 
 TRANSCRIPT:
 "${transcription}"
 
+When analyzing this speech, please follow the marking scheme below. Evaluate the speech and assign a score out of 10, based on the following 5 equally weighted criteria (2 marks each):
+
+1. Clarity (2 marks)
+   - 2 marks: Speech is clear, well-articulated, and easy to understand
+   - 1 mark: Mostly clear but has occasional mumbling, filler words, or unclear words
+   - 0 marks: Often unclear, hard to follow
+
+2. Structure & Organization (2 marks)
+   - 2 marks: Has a clear beginning, middle, and end; ideas flow logically
+   - 1 mark: Some structure is present, but flow is inconsistent
+   - 0 marks: No clear structure, ideas feel scattered
+
+3. Vocabulary & Expression (2 marks)
+   - 2 marks: Uses varied and appropriate vocabulary; expressive and engaging
+   - 1 mark: Simple or repetitive vocabulary, but gets the point across
+   - 0 marks: Poor vocabulary or word choice that weakens the message
+
+4. Grammar & Sentence Construction (2 marks)
+   - 2 marks: No or very few grammatical mistakes; natural phrasing
+   - 1 mark: Some grammar issues, but meaning remains clear
+   - 0 marks: Many errors that affect understanding
+
+5. Relevance & Content (2 marks)
+   - 2 marks: Speech fully addresses the topic with meaningful ideas or examples
+   - 1 mark: Partially addresses the topic or lacks depth
+   - 0 marks: Off-topic or content is too shallow
+
 Please analyze this speech and provide your response in the following JSON format:
 {
   "score": [number from 1-10],
-  "feedback": "[comprehensive summary of strengths and areas to improve]",
+  "feedback": "[balanced summary highlighting both strengths and areas for improvement]",
   "suggested_phrases": [
     {
       "original": "[original phrase from transcript]",
@@ -46,14 +73,7 @@ Please analyze this speech and provide your response in the following JSON forma
   "corrected_speech": "[full improved version of the speech with corrections applied]"
 }
 
-Focus on:
-- Grammar and syntax errors
-- Clarity and flow of ideas
-- Vocabulary appropriateness and variety
-- Coherence with the given topic
-- Overall effectiveness of communication
-
-Provide at least 3-5 suggested phrase improvements and ensure the corrected speech maintains the speaker's intended meaning while improving clarity and impact.`;
+IMPORTANT: Provide balanced feedback that acknowledges what the speaker did well alongside areas for improvement. Be encouraging while being constructive. Provide at least 3-5 suggested phrase improvements and ensure the corrected speech maintains the speaker's intended meaning while improving clarity and impact.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
