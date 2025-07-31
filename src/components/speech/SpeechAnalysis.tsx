@@ -2,8 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Play, Pause, Volume2, TrendingUp, AlertTriangle, CheckCircle, Trophy, Target, BookOpen, Mic, Edit3, Star, RefreshCw } from "lucide-react";
+import { Play, Pause, Volume2, TrendingUp, AlertTriangle, CheckCircle, Trophy, Target, BookOpen, Mic, Edit3, Star, RefreshCw, Download } from "lucide-react";
 import { useState, useRef } from "react";
+import { generateSpeechAnalysisPDF } from "@/lib/pdfGenerator";
+import { useAuth } from "@/hooks/useAuth";
 
 interface SpeechAnalysisResult {
   original_transcription: string;
@@ -35,7 +37,9 @@ interface SpeechAnalysisProps {
 export const SpeechAnalysis = ({ result, audioUrl, topic, onRetry }: SpeechAnalysisProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showCorrected, setShowCorrected] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const { user } = useAuth();
 
   const togglePlayback = () => {
     if (audioRef.current) {
@@ -77,6 +81,21 @@ export const SpeechAnalysis = ({ result, audioUrl, topic, onRetry }: SpeechAnaly
       case 'grammar': return <Edit3 className="w-5 h-5" />;
       case 'relevance': return <Star className="w-5 h-5" />;
       default: return <TrendingUp className="w-5 h-5" />;
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    setIsGeneratingPDF(true);
+    try {
+      await generateSpeechAnalysisPDF(
+        result,
+        topic,
+        user?.email || 'user@example.com'
+      );
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 
@@ -289,19 +308,33 @@ export const SpeechAnalysis = ({ result, audioUrl, topic, onRetry }: SpeechAnaly
           </Card>
         )}
 
-        {/* Try Again CTA */}
+        {/* Action Buttons */}
         <div className="text-center">
-          <Button 
-            onClick={onRetry}
-            variant="neura" 
-            size="lg"
-            className="shadow-neura-glow hover:shadow-neura-glow group"
-          >
-            <RefreshCw className="w-5 h-5 mr-2 group-hover:rotate-180 transition-transform duration-300" />
-            Practice Again
-          </Button>
-          <p className="text-sm text-muted-foreground mt-2">
-            Ready to improve your score? Try the same topic again!
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button 
+              onClick={onRetry}
+              variant="neura" 
+              size="lg"
+              className="shadow-neura-glow hover:shadow-neura-glow group"
+            >
+              <RefreshCw className="w-5 h-5 mr-2 group-hover:rotate-180 transition-transform duration-300" />
+              Practice Again
+            </Button>
+            
+            <Button 
+              onClick={handleDownloadPDF}
+              variant="neura-outline" 
+              size="lg"
+              disabled={isGeneratingPDF}
+              className="shadow-neura hover:shadow-neura-glow group"
+            >
+              <Download className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" />
+              {isGeneratingPDF ? 'Generating...' : 'Download Report (PDF)'}
+            </Button>
+          </div>
+          
+          <p className="text-sm text-muted-foreground mt-4">
+            Ready to improve your score? Try the same topic again or download your detailed analysis report!
           </p>
         </div>
       </div>
