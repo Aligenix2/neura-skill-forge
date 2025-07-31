@@ -23,6 +23,10 @@ const Hero = () => {
               Start with speech enhancement and discover the power of AI-driven skill development.
             </p>
             
+            <p className="text-sm text-muted-foreground/70">
+              Powered by Skillabs
+            </p>
+            
             <div className="flex flex-col sm:flex-row gap-4">
               <Link to="/auth">
                 <Button variant="neura" size="lg" className="group">

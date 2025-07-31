@@ -138,6 +138,9 @@ const Auth = () => {
             <p className="text-muted-foreground">
               {isSignUp ? "Start your AI-powered learning journey" : "Sign in to continue your learning"}
             </p>
+            <p className="text-sm text-muted-foreground/70">
+              Powered by Skillabs
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
