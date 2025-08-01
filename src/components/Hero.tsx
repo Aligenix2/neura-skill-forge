@@ -30,11 +30,11 @@ const Hero = () => {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <Link to="/coming-soon">
+              <a href="https://youtu.be/c9tLB0IU518" target="_blank" rel="noopener noreferrer">
                 <Button variant="neura-outline" size="lg">
                   Watch Demo
                 </Button>
-              </Link>
+              </a>
             </div>
             
             <div className="flex items-center space-x-8 text-sm text-muted-foreground">
