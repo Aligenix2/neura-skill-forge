@@ -39,7 +39,7 @@ const Hero = () => {
             
             <div className="flex items-center space-x-8 text-sm text-muted-foreground">
               <div>
-                <span className="text-2xl font-bold text-neura-cyan">10K+</span>
+                <span className="text-2xl font-bold text-neura-cyan">5K+</span>
                 <br />
                 Students Trained
               </div>
