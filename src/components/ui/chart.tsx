@@ -74,28 +74,48 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     return null
   }
 
-  return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color =
-      itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
-      itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
-  })
-  .join("\n")}
-}
-`
-          )
-          .join("\n"),
-      }}
-    />
-  )
+  // Generate CSS safely without dangerouslySetInnerHTML
+  const cssText = React.useMemo(() => {
+    // Sanitize the chart ID to prevent CSS injection
+    const sanitizedId = id.replace(/[^a-zA-Z0-9-_]/g, '')
+    
+    return Object.entries(THEMES)
+      .map(([theme, prefix]) => {
+        const selector = prefix ? `${prefix} [data-chart="${sanitizedId}"]` : `[data-chart="${sanitizedId}"]`
+        const cssVars = colorConfig
+          .map(([key, itemConfig]) => {
+            // Sanitize key to prevent CSS injection
+            const sanitizedKey = key.replace(/[^a-zA-Z0-9-_]/g, '')
+            const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color
+            
+            // Validate color value to prevent CSS injection
+            if (!color || typeof color !== 'string') return null
+            
+            // Allow only valid CSS color formats (hex, rgb, hsl, named colors)
+            const colorPattern = /^(#[0-9a-fA-F]{3,8}|rgb\([^)]+\)|rgba\([^)]+\)|hsl\([^)]+\)|hsla\([^)]+\)|[a-zA-Z]+)$/
+            if (!colorPattern.test(color.trim())) return null
+            
+            return `  --color-${sanitizedKey}: ${color.trim()};`
+          })
+          .filter(Boolean)
+          .join('\n')
+        
+        return cssVars ? `${selector} {\n${cssVars}\n}` : ''
+      })
+      .filter(Boolean)
+      .join('\n')
+  }, [id, colorConfig])
+
+  // Use a ref to set the style content safely
+  const styleRef = React.useRef<HTMLStyleElement>(null)
+  
+  React.useEffect(() => {
+    if (styleRef.current) {
+      styleRef.current.textContent = cssText
+    }
+  }, [cssText])
+
+  return <style ref={styleRef} />
 }
 
 const ChartTooltip = RechartsPrimitive.Tooltip
