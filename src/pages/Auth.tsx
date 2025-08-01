@@ -58,7 +58,7 @@ const Auth = () => {
         } catch (err) {
           // Continue even if this fails
         }
-        const redirectUrl = `${window.location.origin}/`;
+        const redirectUrl = "https://www.neruaskillabs.com/";
         const {
           data,
           error
