@@ -44,14 +44,14 @@ const Dashboard = () => {
       title: "Coding Skills",
       icon: Code,
       description: "Interactive coding challenges and personalized learning paths.",
-      route: "/coming-soon",
+      route: "/coding",
       iconColor: "bg-neura-purple"
     },
     {
       title: "Entrepreneurship",
       icon: Lightbulb,
       description: "Business acumen development with real-world case studies.",
-      route: "/coming-soon",
+      route: "/entrepreneurship",
       iconColor: "bg-green-600"
     }
   ];
