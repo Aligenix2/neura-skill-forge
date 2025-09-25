@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const { transcription, topic } = await req.json();
+    const { transcription, topic, wordCount, durationSeconds, pauseStats } = await req.json();
 
     if (!transcription || !topic) {
       return new Response(JSON.stringify({ error: 'Transcription and topic are required' }), {
@@ -24,15 +24,32 @@ serve(async (req) => {
       });
     }
 
+    // Calculate WPM if duration is provided
+    const wordsPerMinute = wordCount && durationSeconds ? Math.round((wordCount / durationSeconds) * 60) : null;
+
     console.log('Analyzing speech for topic:', topic);
     console.log('Transcription length:', transcription.length);
 
-    const prompt = `You are an encouraging speech coach analyzing a student's speech performance. Your goal is to provide constructive, balanced feedback that motivates students while helping them improve.
+    const prompt = `You are a speech coach analyzing a high school student's public speaking performance. 
+You are given:
+- Transcript of their speech
+- Word count: ${wordCount || 'Not provided'}
+- Duration in seconds: ${durationSeconds || 'Not provided'}
+- Calculated Words Per Minute (WPM): ${wordsPerMinute || 'Not calculated'}
+- Pause statistics: ${pauseStats ? JSON.stringify(pauseStats) : 'Not provided'}
 
 STUDENT'S SPEECH TRANSCRIPT:
 "${transcription}"
 
 TOPIC ASSIGNED: "${topic}"
+
+Your task:
+1. Evaluate the student's pacing based on WPM and pauses. 
+   - Ideal WPM range: 120–140 words per minute.
+   - Slightly outside range = minor issue, far outside = major issue.
+   - Pauses should average 0.5–1.5s. Too short = rushed, too long = dragging.
+2. Produce feedback that is constructive, encouraging, and clear for a high school student.
+3. Analyze content, clarity, delivery, and pacing comprehensively.
 
 ANALYSIS REQUIREMENTS:
 
@@ -47,77 +64,23 @@ ANALYSIS REQUIREMENTS:
 - Preserve the student's original intent, voice, and natural speaking style
 - DO NOT rewrite entire phrases or change the core meaning
 
-✅ 3. MARKING SCHEME (10 POINTS TOTAL - 2 POINTS PER CATEGORY)
-
-Score each category from 0-2 points:
-
-A) CLARITY (2 points max)
-- 2 points: Speech is clear and easy to understand
-- 1 point: Mostly understandable with some unclear moments  
-- 0 points: Difficult to understand throughout
-
-B) STRUCTURE & ORGANIZATION (2 points max)
-- 2 points: Well-organized with logical flow of ideas
-- 1 point: Some structure present but could be improved
-- 0 points: Lacks clear organization or structure
-
-C) VOCABULARY & EXPRESSION (2 points max)
-- 2 points: Uses appropriate and varied vocabulary effectively
-- 1 point: Basic vocabulary that conveys the message adequately
-- 0 points: Limited vocabulary that hinders communication
-
-D) GRAMMAR & SENTENCE CONSTRUCTION (2 points max)
-- 2 points: Generally correct grammar and well-formed sentences
-- 1 point: Some grammar issues but meaning remains clear
-- 0 points: Frequent errors that affect comprehension
-
-E) RELEVANCE & CONTENT (2 points max)
-- 2 points: Directly addresses the topic with relevant content
-- 1 point: Somewhat relevant but could be more developed
-- 0 points: Off-topic or extremely minimal content
-
-💬 4. BALANCED FEEDBACK TONE
-- Use encouraging language: "Nice job with...", "Well expressed when you said...", "I liked how you..."
-- Provide specific, actionable improvement suggestions
-- Be constructive, not critical
-- Maintain a supportive, coach-like tone
-
-🚨 5. EDGE CASE HANDLING
-For very short, unclear, or off-topic responses:
-- Assign appropriate low scores with clear reasoning
-- Gently explain why the speech didn't contain enough analyzable content
-- Encourage the student to try again with more detail
-- Remain supportive and motivating
-
-CRITICAL REQUIREMENT: The overall_score MUST equal the sum of all category scores.
+📊 3. PACING ANALYSIS
+- Evaluate speaking speed based on WPM (ideal: 120-140 WPM)
+- Assess pause patterns and timing
+- Provide specific evidence with numbers
+- Give actionable coaching advice for pacing improvement
 
 Please respond with this EXACT JSON structure:
 
 {
+  "content_score": [1-10],
+  "clarity_score": [1-10],
+  "delivery_score": [1-10],
+  "pacing_score": [1-10],
+  "pacing_evidence": "Concrete numbers, e.g. 'Student spoke at 155 WPM, slightly faster than ideal.'",
+  "pacing_advice": "Actionable coaching tip, e.g. 'Slow down slightly at transitions to let ideas sink in.'",
+  "overall_comment": "Encouraging summary combining all factors.",
   "original_transcription": "${transcription}",
-  "overall_score": [sum of all category scores],
-  "category_scores": {
-    "clarity": {
-      "score": [0-2],
-      "explanation": "[encouraging explanation of the score]"
-    },
-    "structure": {
-      "score": [0-2], 
-      "explanation": "[constructive explanation of the score]"
-    },
-    "vocabulary": {
-      "score": [0-2],
-      "explanation": "[supportive explanation of the score]"
-    },
-    "grammar": {
-      "score": [0-2],
-      "explanation": "[helpful explanation of the score]"
-    },
-    "relevance": {
-      "score": [0-2],
-      "explanation": "[encouraging explanation of topic coverage]"
-    }
-  },
   "positive_aspects": [
     "Nice job with [specific strength]",
     "Well expressed when you said [specific example]", 
@@ -171,7 +134,7 @@ Remember: Be encouraging, specific, and constructive. Focus on building confiden
     console.log('Raw OpenAI response:', analysisText);
 
     // Parse the JSON response from OpenAI
-    let analysisResult;
+    let analysisResult: any;
     try {
       // Clean the response by removing markdown code blocks if present
       let cleanedResponse = analysisText.trim();
@@ -183,33 +146,26 @@ Remember: Be encouraging, specific, and constructive. Focus on building confiden
       
       analysisResult = JSON.parse(cleanedResponse);
       
-      // Verify that overall_score equals sum of category scores
-      const categorySum = 
-        analysisResult.category_scores.clarity.score +
-        analysisResult.category_scores.structure.score +
-        analysisResult.category_scores.vocabulary.score +
-        analysisResult.category_scores.grammar.score +
-        analysisResult.category_scores.relevance.score;
-      
-      if (analysisResult.overall_score !== categorySum) {
-        console.log('Correcting overall score to match category sum');
-        analysisResult.overall_score = categorySum;
-      }
+      // Validate score ranges (1-10)
+      const scores = ['content_score', 'clarity_score', 'delivery_score', 'pacing_score'];
+      scores.forEach(scoreKey => {
+        if (analysisResult[scoreKey] < 1) analysisResult[scoreKey] = 1;
+        if (analysisResult[scoreKey] > 10) analysisResult[scoreKey] = 10;
+      });
       
     } catch (parseError) {
       console.error('Failed to parse OpenAI response as JSON:', parseError);
       console.error('Raw response was:', analysisText);
       // Fallback response if JSON parsing fails
       analysisResult = {
+        content_score: 5,
+        clarity_score: 5,
+        delivery_score: 5,
+        pacing_score: 5,
+        pacing_evidence: wordsPerMinute ? `Student spoke at ${wordsPerMinute} WPM.` : "Pacing could not be calculated.",
+        pacing_advice: "Focus on maintaining a steady, comfortable pace when speaking.",
+        overall_comment: "You made a good effort with your speech. Keep practicing to build confidence and improve your delivery.",
         original_transcription: transcription,
-        overall_score: 4,
-        category_scores: {
-          clarity: { score: 1, explanation: "The speech was mostly understandable." },
-          structure: { score: 1, explanation: "Some organization was present in your speech." },
-          vocabulary: { score: 1, explanation: "You used appropriate basic vocabulary." },
-          grammar: { score: 1, explanation: "Grammar was generally acceptable with minor issues." },
-          relevance: { score: 0, explanation: "The response could have addressed the topic more directly." }
-        },
         positive_aspects: ["You made an effort to speak", "Your pronunciation was clear"],
         areas_to_improve: ["Try to develop your ideas more fully", "Consider organizing your thoughts before speaking"],
         suggested_phrases: [],
@@ -227,7 +183,7 @@ Remember: Be encouraging, specific, and constructive. Focus on building confiden
     console.error('Error in analyze-speech function:', error);
     return new Response(JSON.stringify({ 
       error: 'Failed to analyze speech',
-      details: error.message 
+      details: error instanceof Error ? error.message : 'Unknown error occurred'
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

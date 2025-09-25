@@ -2,15 +2,14 @@ import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer
 import { saveAs } from 'file-saver';
 
 interface SpeechAnalysisResult {
+  content_score: number;
+  clarity_score: number;
+  delivery_score: number;
+  pacing_score: number;
+  pacing_evidence: string;
+  pacing_advice: string;
+  overall_comment: string;
   original_transcription: string;
-  overall_score: number;
-  category_scores: {
-    clarity: { score: number; explanation: string };
-    structure: { score: number; explanation: string };
-    vocabulary: { score: number; explanation: string };
-    grammar: { score: number; explanation: string };
-    relevance: { score: number; explanation: string };
-  };
   positive_aspects: string[];
   areas_to_improve: string[];
   suggested_phrases: Array<{
@@ -150,21 +149,18 @@ const SpeechAnalysisReport = ({
       {/* Overall Score */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Overall Performance</Text>
-        <Text style={styles.score}>Score: {result.overall_score}/10</Text>
+        <Text style={styles.score}>Overall Score: {Math.round((result.content_score + result.clarity_score + result.delivery_score + result.pacing_score) / 4)}/10</Text>
+        <Text style={styles.text}>Content: {result.content_score}/10</Text>
+        <Text style={styles.text}>Clarity: {result.clarity_score}/10</Text>
+        <Text style={styles.text}>Delivery: {result.delivery_score}/10</Text>
+        <Text style={styles.text}>Pacing: {result.pacing_score}/10</Text>
       </View>
 
-      {/* Category Breakdown */}
+      {/* Pacing Analysis */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Detailed Category Breakdown</Text>
-        {Object.entries(result.category_scores).map(([category, data]) => (
-          <View key={category} style={styles.categoryRow}>
-            <Text style={styles.categoryName}>
-              {category.charAt(0).toUpperCase() + category.slice(1)}:
-            </Text>
-            <Text style={styles.categoryScore}>{data.score}/2</Text>
-            <Text style={styles.categoryExplanation}>{data.explanation}</Text>
-          </View>
-        ))}
+        <Text style={styles.sectionTitle}>Pacing Analysis</Text>
+        <Text style={styles.text}>{result.pacing_evidence}</Text>
+        <Text style={styles.text}>{result.pacing_advice}</Text>
       </View>
 
       {/* Original Transcription */}

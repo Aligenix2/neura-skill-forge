@@ -12,15 +12,14 @@ import { transcribeAudio, RealTimeTranscriber } from "@/lib/whisperTranscription
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SpeechAnalysisResult {
+  content_score: number;
+  clarity_score: number;
+  delivery_score: number;
+  pacing_score: number;
+  pacing_evidence: string;
+  pacing_advice: string;
+  overall_comment: string;
   original_transcription: string;
-  overall_score: number;
-  category_scores: {
-    clarity: { score: number; explanation: string };
-    structure: { score: number; explanation: string };
-    vocabulary: { score: number; explanation: string };
-    grammar: { score: number; explanation: string };
-    relevance: { score: number; explanation: string };
-  };
   positive_aspects: string[];
   areas_to_improve: string[];
   suggested_phrases: Array<{
@@ -30,6 +29,7 @@ export interface SpeechAnalysisResult {
   }>;
   corrected_speech: string;
 }
+
 export type SpeechMode = "storytelling" | "opinion" | null;
 export type AnalysisState = "idle" | "recording" | "processing" | "complete";
 const Speech = () => {
@@ -40,6 +40,7 @@ const Speech = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string>("");
   const [transcript, setTranscript] = useState<string>("");
+  const [recordingStartTime, setRecordingStartTime] = useState<number>(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recognitionRef = useRef<any>(null);
@@ -192,6 +193,7 @@ const Speech = () => {
       }
       mediaRecorder.start();
       setIsRecording(true);
+      setRecordingStartTime(Date.now());
       setAnalysisState("recording");
       setTranscript(""); // Clear previous transcript
     } catch (error) {
@@ -241,11 +243,18 @@ const Speech = () => {
             return;
           }
           
+          // Calculate speech metrics
+          const wordCount = finalTranscript.split(/\s+/).filter(word => word.length > 0).length;
+          const durationSeconds = recordingStartTime > 0 ? (Date.now() - recordingStartTime) / 1000 : 0;
+          
           // Use Supabase Edge Function for AI-powered analysis
           const { data: result, error } = await supabase.functions.invoke('analyze-speech', {
             body: { 
               transcription: finalTranscript, 
-              topic: selectedTopic 
+              topic: selectedTopic,
+              wordCount: wordCount,
+              durationSeconds: durationSeconds,
+              pauseStats: null // Can be enhanced later with actual pause detection
             }
           });
           

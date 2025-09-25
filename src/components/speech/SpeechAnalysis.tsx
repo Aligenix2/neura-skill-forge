@@ -2,21 +2,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Play, Pause, Volume2, TrendingUp, AlertTriangle, CheckCircle, Trophy, Target, BookOpen, Mic, Edit3, Star, RefreshCw, Download } from "lucide-react";
+import { Play, Pause, Volume2, TrendingUp, AlertTriangle, CheckCircle, Trophy, Target, BookOpen, Mic, Edit3, Star, RefreshCw, Download, FileText, Clock } from "lucide-react";
 import { useState, useRef } from "react";
 import { generateSpeechAnalysisPDF } from "@/lib/pdfGenerator";
 import { useAuth } from "@/hooks/useAuth";
 
 interface SpeechAnalysisResult {
+  content_score: number;
+  clarity_score: number;
+  delivery_score: number;
+  pacing_score: number;
+  pacing_evidence: string;
+  pacing_advice: string;
+  overall_comment: string;
   original_transcription: string;
-  overall_score: number;
-  category_scores: {
-    clarity: { score: number; explanation: string };
-    structure: { score: number; explanation: string };
-    vocabulary: { score: number; explanation: string };
-    grammar: { score: number; explanation: string };
-    relevance: { score: number; explanation: string };
-  };
   positive_aspects: string[];
   areas_to_improve: string[];
   suggested_phrases: Array<{
@@ -117,12 +116,12 @@ export const SpeechAnalysis = ({ result, audioUrl, topic, onRetry }: SpeechAnaly
           
           {/* Overall Score Badge */}
           <div className="inline-flex items-center space-x-3 bg-card rounded-full px-6 py-3 border border-border shadow-neura">
-            <div className={`w-16 h-16 rounded-full ${getScoreBadgeColor(result.overall_score)} flex items-center justify-center`}>
-              <span className="text-2xl font-bold">{result.overall_score}</span>
+            <div className={`w-16 h-16 rounded-full ${getScoreBadgeColor(Math.round((result.content_score + result.clarity_score + result.delivery_score + result.pacing_score) / 4))} flex items-center justify-center`}>
+              <span className="text-2xl font-bold">{Math.round((result.content_score + result.clarity_score + result.delivery_score + result.pacing_score) / 4)}</span>
             </div>
             <div className="text-left">
-              <div className="text-2xl font-bold text-foreground">{result.overall_score}/10</div>
-              <div className="text-sm text-muted-foreground">{getScoreDescription(result.overall_score)}</div>
+              <div className="text-2xl font-bold text-foreground">{Math.round((result.content_score + result.clarity_score + result.delivery_score + result.pacing_score) / 4)}/10</div>
+              <div className="text-sm text-muted-foreground">{getScoreDescription(Math.round((result.content_score + result.clarity_score + result.delivery_score + result.pacing_score) / 4))}</div>
             </div>
           </div>
         </div>
@@ -199,27 +198,88 @@ export const SpeechAnalysis = ({ result, audioUrl, topic, onRetry }: SpeechAnaly
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {Object.entries(result.category_scores).map(([category, data]) => (
-                <div key={category} className="bg-neura-cyan/5 border border-neura-cyan/20 rounded-lg p-4 hover:bg-neura-cyan/10 transition-all duration-300">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-2">
-                      <div className="text-neura-cyan">{getCategoryIcon(category)}</div>
-                      <h4 className="font-semibold text-neura-navy capitalize">
-                        {category.replace('_', ' & ')}
-                      </h4>
-                    </div>
-                    <Badge className={`${getScoreBadgeColor(data.score * 5)} font-bold`}>
-                      {data.score}/2
-                    </Badge>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+              {/* Content Score */}
+              <div className="bg-neura-cyan/5 border border-neura-cyan/20 rounded-lg p-4 hover:bg-neura-cyan/10 transition-all duration-300">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="text-neura-cyan"><FileText className="w-4 h-4" /></div>
+                    <h4 className="font-semibold text-neura-navy">Content</h4>
                   </div>
-                  <Progress 
-                    value={(data.score / 2) * 100} 
-                    className="mb-2 h-2"
-                  />
-                  <p className="text-sm text-muted-foreground leading-relaxed">{data.explanation}</p>
+                  <Badge className={`${getScoreBadgeColor(result.content_score)} font-bold`}>
+                    {result.content_score}/10
+                  </Badge>
                 </div>
-              ))}
+                <Progress 
+                  value={(result.content_score / 10) * 100} 
+                  className="mb-2 h-2"
+                />
+                <p className="text-sm text-muted-foreground leading-relaxed">Topic relevance and content depth</p>
+              </div>
+
+              {/* Clarity Score */}
+              <div className="bg-neura-cyan/5 border border-neura-cyan/20 rounded-lg p-4 hover:bg-neura-cyan/10 transition-all duration-300">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="text-neura-cyan"><Volume2 className="w-4 h-4" /></div>
+                    <h4 className="font-semibold text-neura-navy">Clarity</h4>
+                  </div>
+                  <Badge className={`${getScoreBadgeColor(result.clarity_score)} font-bold`}>
+                    {result.clarity_score}/10
+                  </Badge>
+                </div>
+                <Progress 
+                  value={(result.clarity_score / 10) * 100} 
+                  className="mb-2 h-2"
+                />
+                <p className="text-sm text-muted-foreground leading-relaxed">Speech clarity and pronunciation</p>
+              </div>
+
+              {/* Delivery Score */}
+              <div className="bg-neura-cyan/5 border border-neura-cyan/20 rounded-lg p-4 hover:bg-neura-cyan/10 transition-all duration-300">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="text-neura-cyan"><Mic className="w-4 h-4" /></div>
+                    <h4 className="font-semibold text-neura-navy">Delivery</h4>
+                  </div>
+                  <Badge className={`${getScoreBadgeColor(result.delivery_score)} font-bold`}>
+                    {result.delivery_score}/10
+                  </Badge>
+                </div>
+                <Progress 
+                  value={(result.delivery_score / 10) * 100} 
+                  className="mb-2 h-2"
+                />
+                <p className="text-sm text-muted-foreground leading-relaxed">Overall presentation and confidence</p>
+              </div>
+
+              {/* Pacing Score */}
+              <div className="bg-neura-cyan/5 border border-neura-cyan/20 rounded-lg p-4 hover:bg-neura-cyan/10 transition-all duration-300">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="text-neura-cyan"><Clock className="w-4 h-4" /></div>
+                    <h4 className="font-semibold text-neura-navy">Pacing</h4>
+                  </div>
+                  <Badge className={`${getScoreBadgeColor(result.pacing_score)} font-bold`}>
+                    {result.pacing_score}/10
+                  </Badge>
+                </div>
+                <Progress 
+                  value={(result.pacing_score / 10) * 100} 
+                  className="mb-2 h-2"
+                />
+                <p className="text-sm text-muted-foreground leading-relaxed">{result.pacing_advice}</p>
+              </div>
+            </div>
+
+            {/* Pacing Analysis Section */}
+            <div className="mt-6 p-4 bg-neura-orange/5 border border-neura-orange/20 rounded-lg">
+              <h4 className="font-semibold text-neura-navy mb-2 flex items-center">
+                <Clock className="w-4 h-4 mr-2 text-neura-orange" />
+                Pacing Analysis
+              </h4>
+              <p className="text-sm text-muted-foreground mb-2">{result.pacing_evidence}</p>
+              <p className="text-sm text-neura-orange font-medium">{result.pacing_advice}</p>
             </div>
           </CardContent>
         </Card>
