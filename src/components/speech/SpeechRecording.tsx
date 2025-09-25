@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Mic, MicOff, Play, Square } from "lucide-react";
 import { SpeechMode } from "@/pages/Speech";
+import { useState, useEffect } from "react";
 
 interface SpeechRecordingProps {
   topic: string;
@@ -20,6 +21,32 @@ export const SpeechRecording = ({
   onStopRecording, 
   onBack 
 }: SpeechRecordingProps) => {
+  const [recordingTime, setRecordingTime] = useState(0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (isRecording) {
+      setRecordingTime(0);
+      interval = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    } else {
+      setRecordingTime(0);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isRecording]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
   return (
     <section className="pt-16 pb-16 min-h-screen bg-gradient-neura-secondary">
       <div className="container mx-auto px-6">
@@ -100,22 +127,27 @@ export const SpeechRecording = ({
                       onClick={onStartRecording}
                       variant="neura"
                       size="lg"
-                      className="relative w-40 h-40 rounded-full text-lg font-semibold hover:scale-105 transition-all duration-300 shadow-neura-glow"
+                      className="relative w-24 h-24 rounded-full text-lg font-semibold hover:scale-105 transition-all duration-300 shadow-neura-glow"
                     >
-                      <Mic className="w-16 h-16" />
+                      <Mic className="w-8 h-8" />
                     </Button>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center space-y-6">
+                  <div className="flex flex-col items-center space-y-4">
                     <div className="relative">
                       <div className="absolute inset-0 bg-red-500 rounded-full blur-xl opacity-30 animate-pulse"></div>
-                      <div className="relative w-40 h-40 rounded-full bg-red-500 flex items-center justify-center animate-pulse shadow-lg">
-                        <MicOff className="w-16 h-16 text-white" />
+                      <div className="relative w-24 h-24 rounded-full bg-red-500 flex items-center justify-center animate-pulse shadow-lg">
+                        <MicOff className="w-8 h-8 text-white" />
                       </div>
                     </div>
-                    <div className="flex items-center space-x-3 text-red-400 bg-red-500/10 rounded-full px-6 py-3 border border-red-500/20">
-                      <div className="w-3 h-3 bg-red-400 rounded-full animate-pulse"></div>
-                      <span className="font-medium">Recording in progress...</span>
+                    <div className="flex flex-col items-center space-y-2">
+                      <div className="text-2xl font-mono font-bold text-red-400 bg-red-500/10 rounded-lg px-4 py-2 border border-red-500/20">
+                        {formatTime(recordingTime)}
+                      </div>
+                      <div className="flex items-center space-x-3 text-red-400 bg-red-500/10 rounded-full px-4 py-2 border border-red-500/20">
+                        <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
+                        <span className="font-medium text-sm">Recording...</span>
+                      </div>
                     </div>
                   </div>
                 )}
