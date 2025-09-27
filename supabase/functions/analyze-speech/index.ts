@@ -29,6 +29,7 @@ serve(async (req) => {
 
     console.log('Analyzing speech for topic:', topic);
     console.log('Transcription length:', transcription.length);
+    console.log('Calculated WPM:', wordsPerMinute);
 
     const prompt = `You are a speech coach analyzing a high school student's public speaking performance. 
 You are given:
@@ -43,13 +44,27 @@ STUDENT'S SPEECH TRANSCRIPT:
 
 TOPIC ASSIGNED: "${topic}"
 
-Your task:
-1. Evaluate the student's pacing based on WPM and pauses. 
-   - Ideal WPM range: 120–140 words per minute.
-   - Slightly outside range = minor issue, far outside = major issue.
-   - Pauses should average 0.5–1.5s. Too short = rushed, too long = dragging.
-2. Produce feedback that is constructive, encouraging, and clear for a high school student.
-3. Analyze content, clarity, delivery, and pacing comprehensively.
+CRITICAL PACING ANALYSIS INSTRUCTIONS:
+
+1. Calculate the student's average words per minute (WPM): ${wordsPerMinute || 'Not available'}
+
+2. Classify pacing into ONE of these categories based on WPM:
+   * Very Slow (below 100 WPM)
+   * Slightly Slow (100–120 WPM) 
+   * Ideal/Engaging Pace (120–160 WPM)
+   * Slightly Fast (160–180 WPM)
+   * Very Fast (above 180 WPM)
+
+3. DO NOT show raw WPM numbers to the student. Report the category and explain in simple, student-friendly language.
+
+4. Provide specific feedback based on pacing category:
+   - Very Slow: Encourage more energy, practice reading aloud faster, add variety to avoid monotony
+   - Slightly Slow: Praise clarity, suggest practicing at quicker pace for liveliness
+   - Ideal/Engaging Pace: Praise them, highlight how it keeps audience engaged
+   - Slightly Fast: Encourage more pauses, practice deep breaths, slow at key points
+   - Very Fast: Explain audience may miss words, suggest deliberate pauses, stress important words
+
+5. Keep tone encouraging, supportive, and easy to understand (avoid technical terms like WPM).
 
 ANALYSIS REQUIREMENTS:
 
@@ -64,12 +79,6 @@ ANALYSIS REQUIREMENTS:
 - Preserve the student's original intent, voice, and natural speaking style
 - DO NOT rewrite entire phrases or change the core meaning
 
-📊 3. PACING ANALYSIS
-- Evaluate speaking speed based on WPM (ideal: 120-140 WPM)
-- Assess pause patterns and timing
-- Provide specific evidence with numbers
-- Give actionable coaching advice for pacing improvement
-
 Please respond with this EXACT JSON structure:
 
 {
@@ -77,8 +86,9 @@ Please respond with this EXACT JSON structure:
   "clarity_score": [1-10],
   "delivery_score": [1-10],
   "pacing_score": [1-10],
-  "pacing_evidence": "Concrete numbers, e.g. 'Student spoke at 155 WPM, slightly faster than ideal.'",
-  "pacing_advice": "Actionable coaching tip, e.g. 'Slow down slightly at transitions to let ideas sink in.'",
+  "pacing_category": "[One of: Very Slow, Slightly Slow, Ideal/Engaging Pace, Slightly Fast, Very Fast]",
+  "pacing_evidence": "[Student-friendly explanation of their pacing category, NO raw WPM numbers]",
+  "pacing_advice": "[Specific improvement tips based on pacing category, encouraging tone]",
   "overall_comment": "Encouraging summary combining all factors.",
   "original_transcription": "${transcription}",
   "positive_aspects": [

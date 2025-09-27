@@ -16,6 +16,7 @@ export interface SpeechAnalysisResult {
   clarity_score: number;
   delivery_score: number;
   pacing_score: number;
+  pacing_category: string;
   pacing_evidence: string;
   pacing_advice: string;
   overall_comment: string;

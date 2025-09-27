@@ -6,6 +6,7 @@ interface SpeechAnalysisResult {
   clarity_score: number;
   delivery_score: number;
   pacing_score: number;
+  pacing_category: string;
   pacing_evidence: string;
   pacing_advice: string;
   overall_comment: string;
@@ -159,8 +160,9 @@ const SpeechAnalysisReport = ({
       {/* Pacing Analysis */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Pacing Analysis</Text>
+        <Text style={styles.text}>Pacing: {result.pacing_category}</Text>
         <Text style={styles.text}>{result.pacing_evidence}</Text>
-        <Text style={styles.text}>{result.pacing_advice}</Text>
+        <Text style={styles.text}>Coach's Tip: {result.pacing_advice}</Text>
       </View>
 
       {/* Original Transcription */}

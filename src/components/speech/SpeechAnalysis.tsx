@@ -12,6 +12,7 @@ interface SpeechAnalysisResult {
   clarity_score: number;
   delivery_score: number;
   pacing_score: number;
+  pacing_category: string;
   pacing_evidence: string;
   pacing_advice: string;
   overall_comment: string;
@@ -274,12 +275,23 @@ export const SpeechAnalysis = ({ result, audioUrl, topic, onRetry }: SpeechAnaly
 
             {/* Pacing Analysis Section */}
             <div className="mt-6 p-4 bg-neura-orange/5 border border-neura-orange/20 rounded-lg">
-              <h4 className="font-semibold text-neura-navy mb-2 flex items-center">
+              <h4 className="font-semibold text-neura-navy mb-3 flex items-center">
                 <Clock className="w-4 h-4 mr-2 text-neura-orange" />
                 Pacing Analysis
               </h4>
-              <p className="text-sm text-muted-foreground mb-2">{result.pacing_evidence}</p>
-              <p className="text-sm text-neura-orange font-medium">{result.pacing_advice}</p>
+              <div className="mb-3">
+                <div className="flex items-center space-x-2 mb-2">
+                  <span className="text-sm font-medium text-muted-foreground">Pacing:</span>
+                  <Badge className="bg-neura-orange text-white font-semibold">
+                    {result.pacing_category}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mb-2">{result.pacing_evidence}</p>
+              </div>
+              <div className="bg-neura-orange/10 rounded-lg p-3 border border-neura-orange/30">
+                <h5 className="text-sm font-medium text-neura-orange mb-1">💡 Coach's Tip:</h5>
+                <p className="text-sm text-foreground">{result.pacing_advice}</p>
+              </div>
             </div>
           </CardContent>
         </Card>
