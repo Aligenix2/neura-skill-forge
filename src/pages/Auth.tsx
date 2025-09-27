@@ -58,7 +58,7 @@ const Auth = () => {
         } catch (err) {
           // Continue even if this fails
         }
-        const redirectUrl = "https://www.neuraskillabs.com/";
+        const redirectUrl = `${window.location.origin}/welcome`;
         const {
           data,
           error

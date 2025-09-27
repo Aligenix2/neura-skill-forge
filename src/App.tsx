@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import ComingSoon from "./pages/ComingSoon";
 import ComingSoonSignedIn from "./pages/ComingSoonSignedIn";
 import Auth from "./pages/Auth";
+import Welcome from "./pages/Welcome";
 import Dashboard from "./pages/Dashboard";
 import Speech from "./pages/Speech";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/coming-soon" element={<ComingSoon />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/welcome" element={<Welcome />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
