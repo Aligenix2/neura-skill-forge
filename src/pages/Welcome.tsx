@@ -1,10 +1,34 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle, Mic } from "lucide-react";
+import { CheckCircle, Mic, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Welcome = () => {
   const navigate = useNavigate();
+  const [aiContent, setAiContent] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchWelcomeMessage() {
+      try {
+        const { data, error } = await supabase.functions.invoke("welcome-message");
+        
+        if (error) throw error;
+        
+        setAiContent(data.content);
+      } catch (error) {
+        console.error("Error fetching welcome message:", error);
+        // Fallback content
+        setAiContent("Welcome to Neura! Get ready to transform your public speaking skills with personalized AI-powered coaching.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    fetchWelcomeMessage();
+  }, []);
 
   const handleStartExercise = () => {
     navigate("/speech");
@@ -27,8 +51,21 @@ const Welcome = () => {
               Welcome to <span className="bg-gradient-neura bg-clip-text text-transparent">Neura</span> 🎉
             </h1>
             <p className="text-muted-foreground text-lg">
-              Your account has been verified successfully. You can now begin your personalized public speaking journey.
+              Your account has been verified successfully.
             </p>
+          </div>
+
+          {/* AI-Generated Content */}
+          <div className="bg-muted/50 rounded-lg p-4 text-left">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="w-6 h-6 animate-spin text-neura-cyan" />
+              </div>
+            ) : (
+              <p className="text-sm leading-relaxed whitespace-pre-line">
+                {aiContent}
+              </p>
+            )}
           </div>
 
           {/* Start Button */}
