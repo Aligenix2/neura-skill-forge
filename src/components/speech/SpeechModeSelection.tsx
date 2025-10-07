@@ -40,8 +40,8 @@ export const SpeechModeSelection = ({ onModeSelect }: SpeechModeSelectionProps) 
               <p className="text-muted-foreground mb-8 leading-relaxed">
                 Master parliamentary debate with structured arguments, logic evaluation, and persuasive delivery feedback.
               </p>
-              <Button variant="neura" size="sm">
-                Next
+              <Button variant="neura" size="sm" className="w-auto px-6">
+                Choose Debate
               </Button>
             </CardContent>
           </Card>
