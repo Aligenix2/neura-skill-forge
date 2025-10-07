@@ -5,6 +5,7 @@ import { ArrowLeft, Mic, MicOff, Play, Pause, RotateCcw, Zap } from "lucide-reac
 import { Link } from "react-router-dom";
 import { SpeechModeSelection } from "@/components/speech/SpeechModeSelection";
 import { TopicSelection } from "@/components/speech/TopicSelection";
+import { MUNSetup } from "@/components/speech/MUNSetup";
 import { SpeechRecording } from "@/components/speech/SpeechRecording";
 import { SpeechAnalysis } from "@/components/speech/SpeechAnalysis";
 import { useToast } from "@/hooks/use-toast";
@@ -324,7 +325,20 @@ const Speech = () => {
 
         {analysisState === "idle" && !mode && <SpeechModeSelection onModeSelect={setMode} />}
 
-        {mode && !selectedTopic && analysisState === "idle" && <TopicSelection mode={mode} onTopicSelect={setSelectedTopic} onBack={() => setMode(null)} />}
+        {mode && !selectedTopic && analysisState === "idle" && mode === "mun" && (
+          <MUNSetup 
+            onSetupComplete={setSelectedTopic} 
+            onBack={() => setMode(null)} 
+          />
+        )}
+
+        {mode && !selectedTopic && analysisState === "idle" && mode !== "mun" && (
+          <TopicSelection 
+            mode={mode} 
+            onTopicSelect={setSelectedTopic} 
+            onBack={() => setMode(null)} 
+          />
+        )}
 
         {selectedTopic && (analysisState === "idle" || analysisState === "recording") && <SpeechRecording topic={selectedTopic} mode={mode!} isRecording={isRecording} onStartRecording={startRecording} onStopRecording={stopRecording} onBack={() => setSelectedTopic("")} />}
 
