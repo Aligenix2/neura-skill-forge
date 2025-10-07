@@ -10,39 +10,54 @@ interface TopicSelectionProps {
   onBack: () => void;
 }
 
-const storytellingTopics = [
-  "Tell us about your most memorable birthday celebration",
-  "Describe a time when you helped someone in need",
-  "Share about your first day at school or a new job",
-  "Talk about a family tradition that means a lot to you",
-  "Describe your favorite childhood memory",
-  "Tell us about a time you overcame a fear",
-  "Share about a meal that holds special significance",
-  "Describe a moment when you felt proud of yourself",
-  "Talk about a friendship that changed your life",
-  "Tell us about your most exciting travel experience"
+const debateMotions = [
+  "This House Believes That social media does more harm than good",
+  "This House Would ban single-use plastics",
+  "This House Believes That artificial intelligence will benefit humanity",
+  "This House Would make voting mandatory",
+  "This House Believes That homework should be abolished",
+  "This House Would implement a universal basic income",
+  "This House Believes That space exploration is worth the cost",
+  "This House Would lower the voting age to 16",
+  "This House Believes That zoos should be closed",
+  "This House Would ban junk food advertising to children"
 ];
 
-const opinionStatements = [
-  "Winter is better than summer",
-  "Social media has more positive than negative effects",
-  "Reading books is more valuable than watching movies",
-  "Working from home is better than working in an office",
-  "Cooking at home is better than eating at restaurants",
-  "Morning people are more productive than night owls",
-  "Video games can be educational and beneficial",
-  "Learning a musical instrument should be mandatory in schools",
-  "Pets make people happier and healthier",
-  "Technology makes life easier but also more complicated",
-  "Public transportation is better than owning a car",
-  "Online learning is as effective as traditional classroom learning"
+const interviewQuestions = [
+  "University Admission: Why do you want to attend this university?",
+  "Scholarship: How will this scholarship help you achieve your goals?",
+  "Startup Pitch: What problem does your idea solve?",
+  "Job Interview: Tell me about your greatest strength and weakness",
+  "College Essay: Describe a challenge you've overcome",
+  "Leadership Role: What makes you a good leader?",
+  "Internship: Why are you interested in this field?",
+  "Graduate School: What are your research interests?",
+  "Volunteer Position: How do you handle working with diverse groups?",
+  "Career Fair: Where do you see yourself in five years?"
+];
+
+const munTopics = [
+  "Committee: UNEP | Country: Brazil | Topic: Amazon rainforest deforestation",
+  "Committee: UNHRC | Country: Canada | Topic: Refugee crisis and asylum policies",
+  "Committee: DISEC | Country: Japan | Topic: Nuclear non-proliferation",
+  "Committee: WHO | Country: India | Topic: Global pandemic preparedness",
+  "Committee: UNSC | Country: France | Topic: Climate change as a security threat",
+  "Committee: ECOSOC | Country: Germany | Topic: Sustainable development goals",
+  "Committee: UNESCO | Country: Egypt | Topic: Cultural heritage preservation",
+  "Committee: UNICEF | Country: Sweden | Topic: Child rights in conflict zones",
+  "Committee: UNDP | Country: Kenya | Topic: Technology access in developing nations",
+  "Committee: UNCSTD | Country: Singapore | Topic: AI regulation and ethics"
 ];
 
 export const TopicSelection = ({ mode, onTopicSelect, onBack }: TopicSelectionProps) => {
   const [topics, setTopics] = useState<string[]>([]);
 
   const generateRandomTopics = () => {
-    const sourceTopics = mode === "storytelling" ? storytellingTopics : opinionStatements;
+    let sourceTopics: string[];
+    if (mode === "debate") sourceTopics = debateMotions;
+    else if (mode === "interview") sourceTopics = interviewQuestions;
+    else sourceTopics = munTopics;
+    
     const shuffled = [...sourceTopics].sort(() => 0.5 - Math.random());
     setTopics(shuffled.slice(0, 4));
   };
@@ -81,13 +96,15 @@ export const TopicSelection = ({ mode, onTopicSelect, onBack }: TopicSelectionPr
         <div className="text-center mb-12">
           <h1 className="text-4xl lg:text-5xl font-bold leading-tight mb-6">
             Choose Your <span className="bg-gradient-neura bg-clip-text text-transparent">
-              {mode === "storytelling" ? "Story Topic" : "Opinion Topic"}
+              {mode === "debate" ? "Debate Motion" : mode === "interview" ? "Interview Question" : "MUN Assignment"}
             </span>
           </h1>
           <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-            {mode === "storytelling" 
-              ? "Select a personal experience to share and practice your storytelling skills"
-              : "Pick a statement to express your opinion about and develop your persuasive speaking"
+            {mode === "debate" 
+              ? "Select a parliamentary debate motion and prepare your opening argument"
+              : mode === "interview"
+              ? "Choose an interview scenario and practice your response"
+              : "Pick your committee, country, and topic to prepare your opening statement"
             }
           </p>
         </div>
@@ -114,9 +131,7 @@ export const TopicSelection = ({ mode, onTopicSelect, onBack }: TopicSelectionPr
                   </div>
                 </div>
                 <CardTitle className="text-lg text-card-foreground leading-relaxed">
-                  {mode === "opinion" && "\""}
                   {topic}
-                  {mode === "opinion" && "\""}
                 </CardTitle>
               </CardHeader>
               <CardContent className="relative pt-0">

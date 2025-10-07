@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const { transcription, topic, wordCount, durationSeconds, pauseStats } = await req.json();
+    const { transcription, topic, wordCount, durationSeconds, pauseStats, mode } = await req.json();
 
     if (!transcription || !topic) {
       return new Response(JSON.stringify({ error: 'Transcription and topic are required' }), {
@@ -23,95 +23,139 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+    
+    const trainingMode = mode || "debate"; // Default to debate if not specified
 
     // Calculate WPM if duration is provided
     const wordsPerMinute = wordCount && durationSeconds ? Math.round((wordCount / durationSeconds) * 60) : null;
 
     console.log('Analyzing speech for topic:', topic);
+    console.log('Training mode:', trainingMode);
     console.log('Transcription length:', transcription.length);
     console.log('Calculated WPM:', wordsPerMinute);
 
-    const prompt = `You are a speech coach analyzing a high school student's public speaking performance. 
-You are given:
-- Transcript of their speech
-- Word count: ${wordCount || 'Not provided'}
-- Duration in seconds: ${durationSeconds || 'Not provided'}
-- Calculated Words Per Minute (WPM): ${wordsPerMinute || 'Not calculated'}
-- Pause statistics: ${pauseStats ? JSON.stringify(pauseStats) : 'Not provided'}
+    // Create mode-specific prompt
+    let modeInstructions = '';
+    
+    if (trainingMode === 'debate') {
+      modeInstructions = `
+🧠 MODE: DEBATE (Parliamentary Style)
+
+You are analyzing a parliamentary debate opening argument. The motion is: "${topic}"
+
+Evaluate the student on:
+1. **Argument Structure (1-10)**: Clear introduction, main points, logical flow, strong conclusion
+2. **Logic & Coherence (1-10)**: Sound reasoning, evidence quality, argument connections
+3. **Persuasiveness (1-10)**: Compelling delivery, emotional appeal, convincing points
+4. **Pacing & Tone (1-10)**: Speaking speed, pauses, vocal variety, confidence
+
+Provide:
+- **Strengths**: 2-3 specific strong points from the speech
+- **Improvements**: 2-3 actionable suggestions
+- **Final Comment**: 1-2 encouraging sentences
+
+Use simple, student-friendly language (ages 12-18). End positively.
+`;
+    } else if (trainingMode === 'interview') {
+      modeInstructions = `
+💼 MODE: INTERVIEW
+
+You are analyzing an interview response. The question was: "${topic}"
+
+Evaluate the student on:
+1. **Content Depth (1-10)**: Thorough answer, relevant examples, clear reasoning
+2. **Confidence & Delivery (1-10)**: Self-assured tone, minimal hesitation, strong presence
+3. **Structure & Clarity (1-10)**: Organized response, clear communication, easy to follow
+4. **Pacing & Tone (1-10)**: Speaking speed, pauses, warmth, professionalism
+
+Provide:
+- **Highlights**: Key strong points in their answer
+- **Improvements**: Specific phrasing suggestions, body language tips, emotional tone advice
+- **Encouragement**: Short motivational note ending positively
+
+Guide them to sound more natural - remind them to smile, think before answering, humanize responses.
+Use simple language (ages 12-18).
+`;
+    } else { // mun
+      modeInstructions = `
+🏛️ MODE: MODEL UN
+
+You are analyzing a Model UN opening statement. The assignment is: "${topic}"
+
+Evaluate the student on:
+1. **Diplomatic Tone (1-10)**: Formal language, respectful, representative of country
+2. **Clarity of Stance (1-10)**: Clear position, specific policies mentioned, unambiguous
+3. **Policy Understanding (1-10)**: Knowledge of issue, realistic solutions, country alignment
+4. **Pacing & Delivery (1-10)**: Speaking speed, pauses, authority, professionalism
+
+Provide:
+- **Strengths**: Effective diplomatic language and representation
+- **Improvements**: Clarity and persuasiveness suggestions
+- **Suggested Lines/Phrases**: Realistic MUN-style policy examples they could use
+
+Use simple language (ages 12-18). End with encouragement.
+`;
+    }
+
+    const prompt = `You are an encouraging speech coach analyzing a student's public speaking performance (ages 12-18).
+
+${modeInstructions}
 
 STUDENT'S SPEECH TRANSCRIPT:
 "${transcription}"
 
-TOPIC ASSIGNED: "${topic}"
+SPEECH METRICS:
+- Word count: ${wordCount || 'Not provided'}
+- Duration: ${durationSeconds || 'Not provided'} seconds
+- Calculated WPM: ${wordsPerMinute || 'Not calculated'}
 
-CRITICAL PACING ANALYSIS INSTRUCTIONS:
+PACING ANALYSIS:
+- Classify pace: Very Slow (<100 WPM), Slightly Slow (100-120), Ideal (120-160), Slightly Fast (160-180), Very Fast (>180)
+- DO NOT show raw WPM to students
+- Use encouraging, simple language
+- Provide specific tips based on their pace category
 
-1. Calculate the student's average words per minute (WPM): ${wordsPerMinute || 'Not available'}
+TRANSCRIPTION CORRECTION:
+- Auto-correct obvious speech recognition errors
+- Fix grammar, add punctuation
+- Preserve student's voice and meaning
+- Do NOT rewrite entire phrases
 
-2. Classify pacing into ONE of these categories based on WPM:
-   * Very Slow (below 100 WPM)
-   * Slightly Slow (100–120 WPM) 
-   * Ideal/Engaging Pace (120–160 WPM)
-   * Slightly Fast (160–180 WPM)
-   * Very Fast (above 180 WPM)
-
-3. DO NOT show raw WPM numbers to the student. Report the category and explain in simple, student-friendly language.
-
-4. Provide specific feedback based on pacing category:
-   - Very Slow: Encourage more energy, practice reading aloud faster, add variety to avoid monotony
-   - Slightly Slow: Praise clarity, suggest practicing at quicker pace for liveliness
-   - Ideal/Engaging Pace: Praise them, highlight how it keeps audience engaged
-   - Slightly Fast: Encourage more pauses, practice deep breaths, slow at key points
-   - Very Fast: Explain audience may miss words, suggest deliberate pauses, stress important words
-
-5. Keep tone encouraging, supportive, and easy to understand (avoid technical terms like WPM).
-
-ANALYSIS REQUIREMENTS:
-
-🔍 1. SPEECH UNDERSTANDING & CONTEXT
-- Analyze if the student addressed the given topic
-- Determine if the response is complete, incomplete, or irrelevant
-- Consider the depth and relevance of content provided
-
-🧠 2. AUTOMATIC TRANSCRIPTION CORRECTION
-- Auto-correct obvious speech recognition errors (e.g., "my pinion" → "in my opinion")
-- Fix minimal grammar issues, add punctuation, and correct obvious misrecognitions
-- Preserve the student's original intent, voice, and natural speaking style
-- DO NOT rewrite entire phrases or change the core meaning
-
-Please respond with this EXACT JSON structure:
+Respond with this EXACT JSON structure:
 
 {
+  "mode": "${trainingMode}",
   "content_score": [1-10],
   "clarity_score": [1-10],
   "delivery_score": [1-10],
   "pacing_score": [1-10],
-  "pacing_category": "[One of: Very Slow, Slightly Slow, Ideal/Engaging Pace, Slightly Fast, Very Fast]",
-  "pacing_evidence": "[Student-friendly explanation of their pacing category, NO raw WPM numbers]",
-  "pacing_advice": "[Specific improvement tips based on pacing category, encouraging tone]",
-  "overall_comment": "Encouraging summary combining all factors.",
+  "pacing_category": "[Very Slow/Slightly Slow/Ideal/Slightly Fast/Very Fast]",
+  "pacing_evidence": "[Student-friendly pacing explanation, NO raw WPM]",
+  "pacing_advice": "[Specific tips based on pace]",
+  "overall_comment": "[Encouraging 1-2 sentence summary]",
   "original_transcription": "${transcription}",
   "positive_aspects": [
-    "Nice job with [specific strength]",
-    "Well expressed when you said [specific example]", 
-    "I liked how you [specific positive observation]"
+    "[Specific strength 1]",
+    "[Specific strength 2]",
+    "[Specific strength 3]"
   ],
   "areas_to_improve": [
-    "[Constructive suggestion for improvement]",
-    "[Specific advice for enhancement]",
-    "[Actionable tip for better performance]"
+    "[Actionable improvement 1]",
+    "[Actionable improvement 2]",
+    "[Actionable improvement 3]"
   ],
   "suggested_phrases": [
     {
-      "original": "[exact phrase from transcript]",
+      "original": "[phrase from transcript]",
       "suggested": "[improved version]",
-      "reason": "[brief explanation of improvement]"
+      "reason": "[why it's better]"
     }
   ],
-  "corrected_speech": "[properly punctuated and lightly corrected version preserving student's voice and meaning]"
+  "corrected_speech": "[corrected version preserving voice]",
+  "recommendationLevel": "[Beginner/Intermediate/Advanced]"
 }
 
-Remember: Be encouraging, specific, and constructive. Focus on building confidence while providing helpful guidance for improvement.`;
+Be encouraging, specific, constructive. Ages 12-18. End with motivation.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',

@@ -62,13 +62,11 @@ export const SpeechRecording = ({
             <div className="absolute inset-0 bg-gradient-to-br from-neura-cyan/5 to-transparent"></div>
             <CardHeader className="relative text-center pb-6">
               <CardTitle className="text-3xl font-bold text-card-foreground mb-6">
-                {mode === "storytelling" ? "Tell Your Story" : "Share Your Opinion"}
+                {mode === "debate" ? "Prepare Your Argument" : mode === "interview" ? "Answer the Question" : "Deliver Your Statement"}
               </CardTitle>
               <div className="bg-neura-cyan/10 rounded-xl p-6 border border-neura-cyan/20 backdrop-blur-sm">
                 <p className="text-xl text-card-foreground font-medium leading-relaxed">
-                  {mode === "opinion" && "\""}
                   {topic}
-                  {mode === "opinion" && "\""}
                 </p>
               </div>
             </CardHeader>
@@ -77,42 +75,61 @@ export const SpeechRecording = ({
               <div className="space-y-6">
                 <h3 className="text-xl font-semibold text-card-foreground">Instructions:</h3>
                 <div className="text-left bg-background/50 rounded-xl p-6 space-y-3 border border-border/50">
-                  {mode === "storytelling" ? (
+                  {mode === "debate" ? (
                     <>
                       <p className="text-muted-foreground flex items-center">
                         <span className="w-2 h-2 bg-neura-cyan rounded-full mr-3"></span>
-                        Share your personal experience about this topic
+                        Present a clear opening argument for or against the motion
                       </p>
                       <p className="text-muted-foreground flex items-center">
                         <span className="w-2 h-2 bg-neura-cyan rounded-full mr-3"></span>
-                        Include details like when, where, and how you felt
+                        Use logical reasoning and evidence to support your position
                       </p>
                       <p className="text-muted-foreground flex items-center">
                         <span className="w-2 h-2 bg-neura-cyan rounded-full mr-3"></span>
-                        Speak for 1-3 minutes
+                        Speak for 2-3 minutes
                       </p>
                       <p className="text-muted-foreground flex items-center">
                         <span className="w-2 h-2 bg-neura-cyan rounded-full mr-3"></span>
-                        Be natural and authentic in your storytelling
+                        Be persuasive and maintain a structured flow
+                      </p>
+                    </>
+                  ) : mode === "interview" ? (
+                    <>
+                      <p className="text-muted-foreground flex items-center">
+                        <span className="w-2 h-2 bg-neura-cyan rounded-full mr-3"></span>
+                        Answer the question thoroughly and honestly
+                      </p>
+                      <p className="text-muted-foreground flex items-center">
+                        <span className="w-2 h-2 bg-neura-cyan rounded-full mr-3"></span>
+                        Provide specific examples from your experience
+                      </p>
+                      <p className="text-muted-foreground flex items-center">
+                        <span className="w-2 h-2 bg-neura-cyan rounded-full mr-3"></span>
+                        Speak for 1-2 minutes
+                      </p>
+                      <p className="text-muted-foreground flex items-center">
+                        <span className="w-2 h-2 bg-neura-cyan rounded-full mr-3"></span>
+                        Be confident and natural in your delivery
                       </p>
                     </>
                   ) : (
                     <>
                       <p className="text-muted-foreground flex items-center">
                         <span className="w-2 h-2 bg-neura-cyan rounded-full mr-3"></span>
-                        Express your opinion clearly about this statement
+                        Deliver a diplomatic opening statement representing your country
                       </p>
                       <p className="text-muted-foreground flex items-center">
                         <span className="w-2 h-2 bg-neura-cyan rounded-full mr-3"></span>
-                        Provide reasons and examples to support your view
+                        Clearly state your country's position and policy proposals
                       </p>
                       <p className="text-muted-foreground flex items-center">
                         <span className="w-2 h-2 bg-neura-cyan rounded-full mr-3"></span>
-                        Speak for 1-3 minutes
+                        Speak for 1 minute
                       </p>
                       <p className="text-muted-foreground flex items-center">
                         <span className="w-2 h-2 bg-neura-cyan rounded-full mr-3"></span>
-                        Consider different perspectives
+                        Use formal, diplomatic language
                       </p>
                     </>
                   )}

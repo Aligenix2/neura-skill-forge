@@ -31,7 +31,7 @@ export interface SpeechAnalysisResult {
   corrected_speech: string;
 }
 
-export type SpeechMode = "storytelling" | "opinion" | null;
+export type SpeechMode = "debate" | "interview" | "mun" | null;
 export type AnalysisState = "idle" | "recording" | "processing" | "complete";
 const Speech = () => {
   const [mode, setMode] = useState<SpeechMode>(null);
@@ -253,6 +253,7 @@ const Speech = () => {
             body: { 
               transcription: finalTranscript, 
               topic: selectedTopic,
+              mode: mode,
               wordCount: wordCount,
               durationSeconds: durationSeconds,
               pauseStats: null // Can be enhanced later with actual pause detection
