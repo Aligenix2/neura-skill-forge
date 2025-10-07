@@ -59,7 +59,7 @@ export const SpeechModeSelection = ({ onModeSelect }: SpeechModeSelectionProps) 
               <p className="text-muted-foreground mb-8 leading-relaxed">
                 Ace university admissions, scholarships, and career interviews with personalized question practice and feedback.
               </p>
-              <Button variant="neura" className="w-full py-3 text-lg font-semibold">
+              <Button variant="neura" size="sm" className="w-auto px-6">
                 Choose Interview
               </Button>
             </CardContent>
@@ -78,7 +78,7 @@ export const SpeechModeSelection = ({ onModeSelect }: SpeechModeSelectionProps) 
               <p className="text-muted-foreground mb-8 leading-relaxed">
                 Perfect your diplomatic speech, policy understanding, and opening statements for Model UN conferences.
               </p>
-              <Button variant="neura" className="w-full py-3 text-lg font-semibold">
+              <Button variant="neura" size="sm" className="w-auto px-6">
                 Choose Model UN
               </Button>
             </CardContent>
