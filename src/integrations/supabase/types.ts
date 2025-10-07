@@ -7,13 +7,64 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
   }
   public: {
     Tables: {
+      diagnostic_results: {
+        Row: {
+          clarity_score: number
+          confidence_score: number
+          created_at: string | null
+          feedback: Json
+          id: string
+          motivation: string
+          overall_recommendation: string
+          pacing_score: number
+          prompt_chosen: string
+          recommended_mode: string
+          tone_expression_score: number
+          transcription: string | null
+          user_id: string
+          vocabulary_score: number
+        }
+        Insert: {
+          clarity_score: number
+          confidence_score: number
+          created_at?: string | null
+          feedback: Json
+          id?: string
+          motivation: string
+          overall_recommendation: string
+          pacing_score: number
+          prompt_chosen: string
+          recommended_mode: string
+          tone_expression_score: number
+          transcription?: string | null
+          user_id: string
+          vocabulary_score: number
+        }
+        Update: {
+          clarity_score?: number
+          confidence_score?: number
+          created_at?: string | null
+          feedback?: Json
+          id?: string
+          motivation?: string
+          overall_recommendation?: string
+          pacing_score?: number
+          prompt_chosen?: string
+          recommended_mode?: string
+          tone_expression_score?: number
+          transcription?: string | null
+          user_id?: string
+          vocabulary_score?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

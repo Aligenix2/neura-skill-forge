@@ -8,6 +8,9 @@ import { TopicSelection } from "@/components/speech/TopicSelection";
 import { MUNSetup } from "@/components/speech/MUNSetup";
 import { SpeechRecording } from "@/components/speech/SpeechRecording";
 import { SpeechAnalysis } from "@/components/speech/SpeechAnalysis";
+import { DiagnosticPromptSelection } from "@/components/speech/DiagnosticPromptSelection";
+import { DiagnosticRecording } from "@/components/speech/DiagnosticRecording";
+import { DiagnosticAnalysis } from "@/components/speech/DiagnosticAnalysis";
 import { useToast } from "@/hooks/use-toast";
 import { transcribeAudio, RealTimeTranscriber } from "@/lib/whisperTranscription";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,7 +37,32 @@ export interface SpeechAnalysisResult {
 
 export type SpeechMode = "debate" | "interview" | "mun" | null;
 export type AnalysisState = "idle" | "recording" | "processing" | "complete";
+export type DiagnosticState = "prompt-selection" | "recording" | "processing" | "complete" | "done";
+
+export interface DiagnosticResult {
+  scores: {
+    clarity: number;
+    pacing: number;
+    tone_expression: number;
+    confidence: number;
+    vocabulary: number;
+  };
+  feedback: {
+    clarity: string;
+    pacing: string;
+    tone_expression: string;
+    confidence: string;
+    vocabulary: string;
+  };
+  overall_recommendation: string;
+  recommended_mode: string;
+  motivation: string;
+}
+
 const Speech = () => {
+  const [diagnosticState, setDiagnosticState] = useState<DiagnosticState>("prompt-selection");
+  const [diagnosticPrompt, setDiagnosticPrompt] = useState<string>("");
+  const [diagnosticResult, setDiagnosticResult] = useState<DiagnosticResult | null>(null);
   const [mode, setMode] = useState<SpeechMode>(null);
   const [selectedTopic, setSelectedTopic] = useState<string>("");
   const [analysisState, setAnalysisState] = useState<AnalysisState>("idle");
@@ -220,7 +248,14 @@ const Speech = () => {
       
       // Then stop the media recorder
       mediaRecorderRef.current.stop();
-      setAnalysisState("processing");
+      
+      // Determine if this is diagnostic or regular analysis
+      const isDiagnostic = diagnosticState === "recording";
+      if (isDiagnostic) {
+        setDiagnosticState("processing");
+      } else {
+        setAnalysisState("processing");
+      }
 
       // Wait for audio processing and enhanced transcription
       setTimeout(async () => {
@@ -241,7 +276,11 @@ const Speech = () => {
               description: "Please try recording again and speak more clearly. Make sure your microphone is working.",
               variant: "destructive"
             });
-            setAnalysisState("idle");
+            if (isDiagnostic) {
+              setDiagnosticState("recording");
+            } else {
+              setAnalysisState("idle");
+            }
             return;
           }
           
@@ -249,25 +288,45 @@ const Speech = () => {
           const wordCount = finalTranscript.split(/\s+/).filter(word => word.length > 0).length;
           const durationSeconds = recordingStartTime > 0 ? (Date.now() - recordingStartTime) / 1000 : 0;
           
-          // Use Supabase Edge Function for AI-powered analysis
-          const { data: result, error } = await supabase.functions.invoke('analyze-speech', {
-            body: { 
-              transcription: finalTranscript, 
-              topic: selectedTopic,
-              mode: mode,
-              wordCount: wordCount,
-              durationSeconds: durationSeconds,
-              pauseStats: null // Can be enhanced later with actual pause detection
+          if (isDiagnostic) {
+            // Analyze diagnostic speech
+            const { data: result, error } = await supabase.functions.invoke('analyze-diagnostic', {
+              body: { 
+                transcription: finalTranscript, 
+                prompt: diagnosticPrompt,
+                wordCount: wordCount,
+                durationSeconds: durationSeconds
+              }
+            });
+            
+            if (error) {
+              console.error("Edge function error:", error);
+              throw new Error(error.message || "Failed to analyze diagnostic speech");
             }
-          });
-          
-          if (error) {
-            console.error("Edge function error:", error);
-            throw new Error(error.message || "Failed to analyze speech");
+            
+            setDiagnosticResult(result);
+            setDiagnosticState("complete");
+          } else {
+            // Use Supabase Edge Function for AI-powered analysis
+            const { data: result, error } = await supabase.functions.invoke('analyze-speech', {
+              body: { 
+                transcription: finalTranscript, 
+                topic: selectedTopic,
+                mode: mode,
+                wordCount: wordCount,
+                durationSeconds: durationSeconds,
+                pauseStats: null // Can be enhanced later with actual pause detection
+              }
+            });
+            
+            if (error) {
+              console.error("Edge function error:", error);
+              throw new Error(error.message || "Failed to analyze speech");
+            }
+            
+            setAnalysisResult(result);
+            setAnalysisState("complete");
           }
-          
-          setAnalysisResult(result);
-          setAnalysisState("complete");
           
         } catch (error) {
           console.error("Analysis failed:", error);
@@ -276,12 +335,19 @@ const Speech = () => {
             description: "Failed to analyze speech. Please try again.",
             variant: "destructive"
           });
-          setAnalysisState("idle");
+          if (isDiagnostic) {
+            setDiagnosticState("recording");
+          } else {
+            setAnalysisState("idle");
+          }
         }
       }, 1000);
     }
-  }, [isRecording, transcript, toast]);
+  }, [isRecording, transcript, toast, diagnosticState, diagnosticPrompt, selectedTopic, mode]);
   const resetAnalysis = () => {
+    setDiagnosticState("prompt-selection");
+    setDiagnosticPrompt("");
+    setDiagnosticResult(null);
     setMode(null);
     setSelectedTopic("");
     setAnalysisState("idle");
@@ -289,6 +355,15 @@ const Speech = () => {
     setIsRecording(false);
     setAudioUrl("");
     setTranscript("");
+  };
+
+  const handleDiagnosticPromptSelect = (prompt: string) => {
+    setDiagnosticPrompt(prompt);
+    setDiagnosticState("recording");
+  };
+
+  const handleDiagnosticComplete = () => {
+    setDiagnosticState("done");
   };
   return <div className="min-h-screen bg-gradient-neura-secondary">
       {/* Header */}
@@ -321,18 +396,51 @@ const Speech = () => {
       </header>
 
       <div className="container mx-auto px-6 py-8 pt-24">
-        
+        {/* Diagnostic Flow */}
+        {diagnosticState === "prompt-selection" && (
+          <DiagnosticPromptSelection onPromptSelect={handleDiagnosticPromptSelect} />
+        )}
 
-        {analysisState === "idle" && !mode && <SpeechModeSelection onModeSelect={setMode} />}
+        {diagnosticState === "recording" && (
+          <DiagnosticRecording
+            prompt={diagnosticPrompt}
+            isRecording={isRecording}
+            onStartRecording={startRecording}
+            onStopRecording={stopRecording}
+            onBack={() => setDiagnosticState("prompt-selection")}
+          />
+        )}
 
-        {mode && !selectedTopic && analysisState === "idle" && mode === "mun" && (
+        {diagnosticState === "processing" && (
+          <Card className="max-w-2xl mx-auto bg-black/40 border-neura-cyan/30">
+            <CardContent className="p-8 text-center">
+              <div className="animate-spin w-16 h-16 border-4 border-neura-cyan border-t-transparent rounded-full mx-auto mb-4"></div>
+              <h3 className="text-xl font-semibold text-white mb-2">Analyzing Your Speech</h3>
+              <p className="text-muted-foreground">Our AI is evaluating your speaking skills...</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {diagnosticState === "complete" && diagnosticResult && (
+          <DiagnosticAnalysis
+            result={diagnosticResult}
+            onContinue={handleDiagnosticComplete}
+          />
+        )}
+
+        {/* Regular Training Flow */}
+        {diagnosticState === "done" && analysisState === "idle" && !mode && (
+          <SpeechModeSelection onModeSelect={setMode} />
+        )}
+
+        {diagnosticState === "done" && mode && !selectedTopic && analysisState === "idle" && mode === "mun" && (
           <MUNSetup 
             onSetupComplete={setSelectedTopic} 
             onBack={() => setMode(null)} 
           />
         )}
 
-        {mode && !selectedTopic && analysisState === "idle" && mode !== "mun" && (
+        {diagnosticState === "done" && mode && !selectedTopic && analysisState === "idle" && mode !== "mun" && (
           <TopicSelection 
             mode={mode} 
             onTopicSelect={setSelectedTopic} 
@@ -340,24 +448,35 @@ const Speech = () => {
           />
         )}
 
-        {selectedTopic && (analysisState === "idle" || analysisState === "recording") && <SpeechRecording topic={selectedTopic} mode={mode!} isRecording={isRecording} onStartRecording={startRecording} onStopRecording={stopRecording} onBack={() => setSelectedTopic("")} />}
+        {diagnosticState === "done" && selectedTopic && (analysisState === "idle" || analysisState === "recording") && (
+          <SpeechRecording 
+            topic={selectedTopic} 
+            mode={mode!} 
+            isRecording={isRecording} 
+            onStartRecording={startRecording} 
+            onStopRecording={stopRecording} 
+            onBack={() => setSelectedTopic("")} 
+          />
+        )}
 
-        {analysisState === "processing" && <Card className="max-w-2xl mx-auto bg-black/40 border-neura-cyan/30">
+        {diagnosticState === "done" && analysisState === "processing" && (
+          <Card className="max-w-2xl mx-auto bg-black/40 border-neura-cyan/30">
             <CardContent className="p-8 text-center">
               <div className="animate-spin w-16 h-16 border-4 border-neura-cyan border-t-transparent rounded-full mx-auto mb-4"></div>
               <h3 className="text-xl font-semibold text-white mb-2">Analyzing Your Speech</h3>
               <p className="text-muted-foreground">Our AI is processing your recording...</p>
             </CardContent>
-          </Card>}
+          </Card>
+        )}
 
-        {analysisState === "complete" && analysisResult && (
-            <SpeechAnalysis 
-              result={analysisResult} 
-              audioUrl={audioUrl} 
-              topic={selectedTopic}
-              onRetry={resetAnalysis}
-            />
-          )}
+        {diagnosticState === "done" && analysisState === "complete" && analysisResult && (
+          <SpeechAnalysis 
+            result={analysisResult} 
+            audioUrl={audioUrl} 
+            topic={selectedTopic}
+            onRetry={resetAnalysis}
+          />
+        )}
       </div>
     </div>;
 };
