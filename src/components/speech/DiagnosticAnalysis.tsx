@@ -151,7 +151,7 @@ export const DiagnosticAnalysis = ({ result, onContinue }: DiagnosticAnalysisPro
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mb-3">{category.description}</p>
-                    <div className="bg-black/20 rounded-lg p-3 border border-white/10">
+                    <div className="bg-background/60 rounded-lg p-3 border border-border/50">
                       <p className="text-xs text-muted-foreground leading-relaxed">{feedback}</p>
                     </div>
                   </div>
