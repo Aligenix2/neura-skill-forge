@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mic, MicOff, ArrowLeft, MessageCircle, Lightbulb, Clock, Sparkles } from "lucide-react";
@@ -21,33 +21,29 @@ export const DiagnosticRecording = ({
 }: DiagnosticRecordingProps) => {
   const [recordingTime, setRecordingTime] = useState(0);
   const MAX_TIME = 45;
-  const startTimeRef = useRef<number>(0);
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
+    let interval: NodeJS.Timeout;
     
     if (isRecording) {
-      startTimeRef.current = Date.now();
       setRecordingTime(0);
-      
-      intervalId = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-        
-        if (elapsed >= MAX_TIME) {
-          setRecordingTime(MAX_TIME);
-          clearInterval(intervalId);
-          onStopRecording();
-        } else {
-          setRecordingTime(elapsed);
-        }
-      }, 100);
+      interval = setInterval(() => {
+        setRecordingTime(prev => {
+          if (prev >= MAX_TIME) {
+            clearInterval(interval);
+            onStopRecording();
+            return MAX_TIME;
+          }
+          return prev + 1;
+        });
+      }, 1000);
     } else {
       setRecordingTime(0);
     }
-    
+
     return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
+      if (interval) {
+        clearInterval(interval);
       }
     };
   }, [isRecording, onStopRecording]);
@@ -55,7 +51,7 @@ export const DiagnosticRecording = ({
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   const progress = (recordingTime / MAX_TIME) * 100;
