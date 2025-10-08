@@ -16,10 +16,13 @@ import { transcribeAudio, RealTimeTranscriber } from "@/lib/whisperTranscription
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SpeechAnalysisResult {
+  mode?: string;
   content_score: number;
   clarity_score: number;
   delivery_score: number;
   pacing_score: number;
+  stance_score?: number;
+  stance_feedback?: string;
   pacing_category: string;
   pacing_evidence: string;
   pacing_advice: string;

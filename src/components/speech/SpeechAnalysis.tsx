@@ -8,10 +8,13 @@ import { generateSpeechAnalysisPDF } from "@/lib/pdfGenerator";
 import { useAuth } from "@/hooks/useAuth";
 
 interface SpeechAnalysisResult {
+  mode?: string;
   content_score: number;
   clarity_score: number;
   delivery_score: number;
   pacing_score: number;
+  stance_score?: number;
+  stance_feedback?: string;
   pacing_category: string;
   pacing_evidence: string;
   pacing_advice: string;
@@ -117,12 +120,12 @@ export const SpeechAnalysis = ({ result, audioUrl, topic, onRetry }: SpeechAnaly
           
           {/* Overall Score Badge */}
           <div className="inline-flex items-center space-x-3 bg-card rounded-full px-6 py-3 border border-border shadow-neura">
-            <div className={`w-16 h-16 rounded-full ${getScoreBadgeColor(Math.round((result.content_score + result.clarity_score + result.delivery_score + result.pacing_score) / 4))} flex items-center justify-center`}>
-              <span className="text-2xl font-bold">{Math.round((result.content_score + result.clarity_score + result.delivery_score + result.pacing_score) / 4)}</span>
+            <div className={`w-16 h-16 rounded-full ${getScoreBadgeColor(Math.round((result.content_score + result.clarity_score + result.delivery_score + result.pacing_score + (result.stance_score || 0)) / (result.stance_score ? 5 : 4)))} flex items-center justify-center`}>
+              <span className="text-2xl font-bold">{Math.round((result.content_score + result.clarity_score + result.delivery_score + result.pacing_score + (result.stance_score || 0)) / (result.stance_score ? 5 : 4))}</span>
             </div>
             <div className="text-left">
-              <div className="text-2xl font-bold text-foreground">{Math.round((result.content_score + result.clarity_score + result.delivery_score + result.pacing_score) / 4)}/10</div>
-              <div className="text-sm text-muted-foreground">{getScoreDescription(Math.round((result.content_score + result.clarity_score + result.delivery_score + result.pacing_score) / 4))}</div>
+              <div className="text-2xl font-bold text-foreground">{Math.round((result.content_score + result.clarity_score + result.delivery_score + result.pacing_score + (result.stance_score || 0)) / (result.stance_score ? 5 : 4))}/10</div>
+              <div className="text-sm text-muted-foreground">{getScoreDescription(Math.round((result.content_score + result.clarity_score + result.delivery_score + result.pacing_score + (result.stance_score || 0)) / (result.stance_score ? 5 : 4)))}</div>
             </div>
           </div>
         </div>
@@ -271,7 +274,49 @@ export const SpeechAnalysis = ({ result, audioUrl, topic, onRetry }: SpeechAnaly
                 />
                 <p className="text-sm text-muted-foreground leading-relaxed">{result.pacing_advice}</p>
               </div>
+
+              {/* Stance Score - Only for MUN mode */}
+              {result.stance_score !== undefined && (
+                <div className="bg-neura-purple/5 border border-neura-purple/20 rounded-lg p-4 hover:bg-neura-purple/10 transition-all duration-300">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="text-neura-purple"><Target className="w-4 h-4" /></div>
+                      <h4 className="font-semibold text-neura-navy">Stance</h4>
+                    </div>
+                    <Badge className={`${getScoreBadgeColor(result.stance_score)} font-bold`}>
+                      {result.stance_score}/10
+                    </Badge>
+                  </div>
+                  <Progress 
+                    value={(result.stance_score / 10) * 100} 
+                    className="mb-2 h-2"
+                  />
+                  <p className="text-sm text-muted-foreground leading-relaxed">Country position alignment</p>
+                </div>
+              )}
             </div>
+
+            {/* Stance Analysis Section - Only for MUN */}
+            {result.stance_score !== undefined && result.stance_feedback && (
+              <div className="mt-6 p-4 bg-neura-purple/5 border border-neura-purple/20 rounded-lg">
+                <h4 className="font-semibold text-neura-navy mb-3 flex items-center">
+                  <Target className="w-4 h-4 mr-2 text-neura-purple" />
+                  Country Stance Analysis
+                </h4>
+                <div className="mb-3">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <span className="text-sm font-medium text-muted-foreground">Alignment:</span>
+                    <Badge className={`${getScoreBadgeColor(result.stance_score)} font-semibold`}>
+                      {result.stance_score}/10 - {getScoreDescription(result.stance_score)}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="bg-neura-purple/10 rounded-lg p-3 border border-neura-purple/30">
+                  <h5 className="text-sm font-medium text-neura-purple mb-1">🏛️ Diplomatic Alignment:</h5>
+                  <p className="text-sm text-foreground">{result.stance_feedback}</p>
+                </div>
+              </div>
+            )}
 
             {/* Pacing Analysis Section */}
             <div className="mt-6 p-4 bg-neura-orange/5 border border-neura-orange/20 rounded-lg">

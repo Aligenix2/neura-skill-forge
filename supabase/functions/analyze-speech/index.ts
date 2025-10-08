@@ -82,20 +82,29 @@ Use simple language (ages 12-18).
 
 You are analyzing a Model UN opening statement. The assignment is: "${topic}"
 
+Extract the committee, country, and topic from the assignment format "Committee: X | Country: Y | Topic: Z"
+
 Evaluate the student on:
 1. **Diplomatic Tone (1-10)**: Formal language, respectful, representative of country
-2. **Clarity of Stance (1-10)**: Clear position, specific policies mentioned, unambiguous
-3. **Policy Understanding (1-10)**: Knowledge of issue, realistic solutions, country alignment
-4. **Pacing & Delivery (1-10)**: Speaking speed, pauses, authority, professionalism
+2. **Stance Alignment (1-10)**: Does the speech align with the country's actual diplomatic position on this issue? Research the country's real stance and evaluate accuracy
+3. **Clarity of Stance (1-10)**: Clear position, specific policies mentioned, unambiguous
+4. **Policy Understanding (1-10)**: Knowledge of issue, realistic solutions, country alignment
+5. **Pacing & Delivery (1-10)**: Speaking speed, pauses, authority, professionalism
+
+**CRITICAL FOR STANCE EVALUATION:**
+- Research the country's actual position on the topic
+- Score 8-10: Speech accurately reflects country's real diplomatic stance with specific policies
+- Score 5-7: Generally aligned but missing key country-specific positions
+- Score 1-4: Contradicts or doesn't reflect country's actual stance
 
 Provide:
+- **stance_feedback**: Detailed explanation of how well they represented their country's actual position
 - **Strengths**: Effective diplomatic language and representation
 - **Improvements**: Clarity and persuasiveness suggestions
-- **Suggested Lines/Phrases**: Realistic MUN-style policy examples they could use
+- **Suggested Lines/Phrases**: Realistic MUN-style policy examples that align with the country's actual stance
 
 Use simple language (ages 12-18). End with encouragement.
 `;
-    }
 
     const prompt = `You are an encouraging speech coach analyzing a student's public speaking performance (ages 12-18).
 
@@ -123,12 +132,18 @@ TRANSCRIPTION CORRECTION:
 
 Respond with this EXACT JSON structure:
 
+FOR MUN MODE, ALSO INCLUDE:
+  "stance_score": [1-10],
+  "stance_feedback": "[Detailed explanation of country stance alignment]"
+
 {
   "mode": "${trainingMode}",
   "content_score": [1-10],
   "clarity_score": [1-10],
   "delivery_score": [1-10],
   "pacing_score": [1-10],
+  "stance_score": [1-10 - ONLY for MUN mode, omit for other modes],
+  "stance_feedback": "[Country stance alignment analysis - ONLY for MUN mode]",
   "pacing_category": "[Very Slow/Slightly Slow/Ideal/Slightly Fast/Very Fast]",
   "pacing_evidence": "[Student-friendly pacing explanation, NO raw WPM]",
   "pacing_advice": "[Specific tips based on pace]",
