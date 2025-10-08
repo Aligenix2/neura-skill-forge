@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mic, MicOff, ArrowLeft, MessageCircle, Lightbulb, Clock, Sparkles } from "lucide-react";
@@ -21,32 +21,47 @@ export const DiagnosticRecording = ({
 }: DiagnosticRecordingProps) => {
   const [recordingTime, setRecordingTime] = useState(0);
   const MAX_TIME = 45;
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const onStopRecordingRef = useRef(onStopRecording);
+
+  // Keep the callback ref updated without causing re-renders
+  useEffect(() => {
+    onStopRecordingRef.current = onStopRecording;
+  }, [onStopRecording]);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
     if (isRecording) {
       setRecordingTime(0);
-      interval = setInterval(() => {
+      
+      intervalRef.current = setInterval(() => {
         setRecordingTime(prev => {
-          if (prev >= MAX_TIME) {
-            clearInterval(interval);
-            onStopRecording();
+          const newTime = prev + 1;
+          if (newTime >= MAX_TIME) {
+            if (intervalRef.current) {
+              clearInterval(intervalRef.current);
+              intervalRef.current = null;
+            }
+            onStopRecordingRef.current();
             return MAX_TIME;
           }
-          return prev + 1;
+          return newTime;
         });
       }, 1000);
     } else {
       setRecordingTime(0);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     }
 
     return () => {
-      if (interval) {
-        clearInterval(interval);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
-  }, [isRecording, onStopRecording]);
+  }, [isRecording]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
