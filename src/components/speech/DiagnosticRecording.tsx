@@ -24,31 +24,30 @@ export const DiagnosticRecording = ({
   const startTimeRef = useRef<number>(0);
 
   useEffect(() => {
-    let animationFrameId: number;
+    let intervalId: NodeJS.Timeout;
     
     if (isRecording) {
       startTimeRef.current = Date.now();
+      setRecordingTime(0);
       
-      const updateTime = () => {
+      intervalId = setInterval(() => {
         const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
         
         if (elapsed >= MAX_TIME) {
           setRecordingTime(MAX_TIME);
+          clearInterval(intervalId);
           onStopRecording();
         } else {
           setRecordingTime(elapsed);
-          animationFrameId = requestAnimationFrame(updateTime);
         }
-      };
-      
-      animationFrameId = requestAnimationFrame(updateTime);
+      }, 100);
     } else {
       setRecordingTime(0);
     }
     
     return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
+      if (intervalId) {
+        clearInterval(intervalId);
       }
     };
   }, [isRecording, onStopRecording]);
