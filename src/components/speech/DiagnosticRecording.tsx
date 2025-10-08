@@ -109,15 +109,18 @@ export const DiagnosticRecording = ({
               </>
             ) : (
               <>
-                <div className="space-y-4">
-                  <div className="flex justify-center items-center gap-3">
-                    <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></div>
-                    <span className="text-3xl font-bold text-white animate-fade-in">
-                      {formatTime(recordingTime)}
-                    </span>
-                    <span className="text-xl text-muted-foreground">/ {formatTime(MAX_TIME)}</span>
+                <div className="space-y-6">
+                  <div className="inline-flex items-center justify-center gap-4 bg-black/40 backdrop-blur-sm rounded-2xl px-8 py-6 border-2 border-red-500/30 shadow-lg shadow-red-500/20">
+                    <div className="w-5 h-5 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></div>
+                    <div className="text-center">
+                      <div className="text-5xl font-bold text-white tabular-nums animate-fade-in">
+                        {formatTime(recordingTime)}
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        of {formatTime(MAX_TIME)} seconds
+                      </div>
+                    </div>
                   </div>
-                  <Progress value={progress} className="w-full h-2" />
                   <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
                     <Sparkles className="w-4 h-4" />
                     Recording will automatically stop at 45 seconds

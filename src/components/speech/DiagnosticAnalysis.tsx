@@ -41,11 +41,11 @@ export const DiagnosticAnalysis = ({ result, onContinue }: DiagnosticAnalysisPro
   const getRecommendationColor = (level: string) => {
     switch (level) {
       case "Beginner":
-        return "bg-blue-500/20 text-blue-300 border-blue-500/50";
+        return "bg-neura-cyan/20 text-neura-cyan border-neura-cyan/50";
       case "Intermediate":
-        return "bg-yellow-500/20 text-yellow-300 border-yellow-500/50";
+        return "bg-neura-purple/20 text-neura-purple border-neura-purple/50";
       case "Advanced":
-        return "bg-green-500/20 text-green-300 border-green-500/50";
+        return "bg-neura-pink/20 text-neura-pink border-neura-pink/50";
       default:
         return "bg-gray-500/20 text-gray-300 border-gray-500/50";
     }
@@ -65,9 +65,9 @@ export const DiagnosticAnalysis = ({ result, onContinue }: DiagnosticAnalysisPro
   };
 
   const getScoreBadgeColor = (score: number) => {
-    if (score >= 8) return "bg-neura-cyan text-white";
-    if (score >= 6) return "bg-neura-purple text-white";
-    return "bg-neura-pink text-white";
+    if (score >= 8) return "bg-gradient-to-br from-neura-pink to-neura-pink/80 text-white";
+    if (score >= 6) return "bg-gradient-to-br from-neura-purple to-neura-purple/80 text-white";
+    return "bg-gradient-to-br from-neura-cyan to-neura-cyan/80 text-white";
   };
 
   const scoreCategories = [
@@ -82,9 +82,9 @@ export const DiagnosticAnalysis = ({ result, onContinue }: DiagnosticAnalysisPro
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Header Section */}
       <div className="text-center mb-8">
-        <div className="inline-flex items-center space-x-2 bg-neura-cyan/10 rounded-full px-4 py-2 border border-neura-cyan/20 mb-4">
-          <Trophy className="w-4 h-4 text-neura-cyan" />
-          <span className="text-sm text-neura-cyan font-medium">Diagnostic Assessment Complete</span>
+        <div className="inline-flex items-center space-x-2 bg-neura-purple/10 rounded-full px-4 py-2 border border-neura-purple/20 mb-4">
+          <Trophy className="w-4 h-4 text-neura-purple" />
+          <span className="text-sm text-neura-purple font-medium">Diagnostic Assessment Complete</span>
         </div>
         
         <h1 className="text-4xl lg:text-5xl font-bold mb-4">
@@ -96,13 +96,13 @@ export const DiagnosticAnalysis = ({ result, onContinue }: DiagnosticAnalysisPro
         </p>
 
         {/* Overall Score Badge */}
-        <div className="inline-flex items-center space-x-3 bg-black/40 border border-neura-cyan/30 backdrop-blur-sm rounded-full px-6 py-3 shadow-neura">
-          <div className={`w-16 h-16 rounded-full ${getScoreBadgeColor(averageScore)} flex items-center justify-center`}>
-            <span className="text-2xl font-bold">{averageScore}</span>
+        <div className="inline-flex items-center space-x-3 bg-card/80 border-2 border-neura-cyan/20 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-neura">
+          <div className={`w-20 h-20 rounded-full ${getScoreBadgeColor(averageScore)} flex items-center justify-center shadow-lg`}>
+            <span className="text-3xl font-bold">{averageScore}</span>
           </div>
           <div className="text-left">
-            <div className="text-2xl font-bold text-white">{averageScore}/10</div>
-            <Badge className={getRecommendationColor(result.overall_recommendation)}>
+            <div className="text-3xl font-bold text-card-foreground">{averageScore}/10</div>
+            <Badge className={`${getRecommendationColor(result.overall_recommendation)} border`}>
               {result.overall_recommendation} Level
             </Badge>
           </div>
@@ -110,43 +110,50 @@ export const DiagnosticAnalysis = ({ result, onContinue }: DiagnosticAnalysisPro
       </div>
 
       {/* Scores Grid */}
-      <Card className="bg-black/40 border-neura-cyan/30 backdrop-blur-sm shadow-neura">
+      <Card className="bg-card/80 border-2 border-neura-cyan/20 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle className="flex items-center text-white">
+          <CardTitle className="flex items-center text-card-foreground">
             <Target className="w-5 h-5 mr-2 text-neura-cyan" />
             Your Speaking Skills Breakdown
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {scoreCategories.map((category) => {
+            {scoreCategories.map((category, index) => {
               const score = result.scores[category.key as keyof typeof result.scores];
               const feedback = result.feedback[category.key as keyof typeof result.feedback];
               const Icon = category.icon;
+              const colors = [
+                { border: "border-neura-purple/20", bg: "bg-gradient-to-br from-neura-purple/10 to-neura-purple/5", icon: "bg-gradient-to-br from-neura-purple to-neura-purple/80" },
+                { border: "border-neura-cyan/20", bg: "bg-gradient-to-br from-neura-cyan/10 to-neura-cyan/5", icon: "bg-gradient-to-br from-neura-cyan to-neura-cyan/80" },
+                { border: "border-neura-pink/20", bg: "bg-gradient-to-br from-neura-pink/10 to-neura-pink/5", icon: "bg-gradient-to-br from-neura-pink to-neura-pink/80" },
+                { border: "border-purple-500/20", bg: "bg-gradient-to-br from-purple-500/10 to-purple-500/5", icon: "bg-gradient-to-br from-purple-500 to-purple-600" },
+                { border: "border-neura-cyan/20", bg: "bg-gradient-to-br from-neura-cyan/10 to-neura-cyan/5", icon: "bg-gradient-to-br from-neura-cyan to-neura-cyan/80" }
+              ];
+              const color = colors[index % colors.length];
               
               return (
                 <div 
                   key={category.key}
-                  className="bg-neura-cyan/5 border border-neura-cyan/20 rounded-lg p-4 hover:bg-neura-cyan/10 transition-all duration-300"
+                  className={`relative bg-card/80 border-2 ${color.border} rounded-lg p-4 hover:shadow-neura-glow transition-all duration-300 overflow-hidden group`}
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-2">
-                      <div className="text-neura-cyan">
-                        <Icon className="w-5 h-5" />
+                  <div className={`absolute inset-0 ${color.bg}`}></div>
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className={`${color.icon} rounded-full p-2 shadow-lg group-hover:scale-110 transition-transform`}>
+                          <Icon className="w-4 h-4 text-white" />
+                        </div>
+                        <h4 className="font-semibold text-card-foreground">{category.label}</h4>
                       </div>
-                      <h4 className="font-semibold text-white">{category.label}</h4>
+                      <Badge className={`${getScoreBadgeColor(score)} font-bold shadow-lg`}>
+                        {score}/10
+                      </Badge>
                     </div>
-                    <Badge className={`${getScoreBadgeColor(score)} font-bold`}>
-                      {score}/10
-                    </Badge>
-                  </div>
-                  <Progress 
-                    value={(score / 10) * 100} 
-                    className="mb-3 h-2"
-                  />
-                  <p className="text-sm text-muted-foreground mb-2">{category.description}</p>
-                  <div className="bg-black/20 rounded p-2 border border-neura-cyan/10">
-                    <p className="text-xs text-muted-foreground">{feedback}</p>
+                    <p className="text-sm text-muted-foreground mb-3">{category.description}</p>
+                    <div className="bg-black/20 rounded-lg p-3 border border-white/10">
+                      <p className="text-xs text-muted-foreground leading-relaxed">{feedback}</p>
+                    </div>
                   </div>
                 </div>
               );
@@ -156,33 +163,35 @@ export const DiagnosticAnalysis = ({ result, onContinue }: DiagnosticAnalysisPro
       </Card>
 
       {/* Motivation Card */}
-      <Card className="bg-gradient-neura/10 border-neura-cyan/30 backdrop-blur-sm shadow-neura">
-        <CardContent className="p-6 flex items-start gap-4">
-          <div className="bg-neura-cyan/20 rounded-full p-3">
-            <TrendingUp className="w-6 h-6 text-neura-cyan" />
+      <Card className="relative bg-card/80 border-2 border-neura-pink/20 backdrop-blur-sm overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-neura-pink/10 to-neura-pink/5"></div>
+        <CardContent className="relative p-6 flex items-start gap-4">
+          <div className="bg-gradient-to-br from-neura-pink to-neura-pink/80 rounded-full p-3 shadow-lg">
+            <TrendingUp className="w-6 h-6 text-white" />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-white mb-2">Your Path Forward</h3>
-            <p className="text-white leading-relaxed">{result.motivation}</p>
+            <h3 className="text-lg font-semibold text-card-foreground mb-2">Your Path Forward</h3>
+            <p className="text-muted-foreground leading-relaxed">{result.motivation}</p>
           </div>
         </CardContent>
       </Card>
 
       {/* Recommendation Card */}
-      <Card className="bg-black/40 border-neura-purple/30 backdrop-blur-sm shadow-neura">
-        <CardContent className="p-8 text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-neura mb-2">
-            <Trophy className="w-8 h-8 text-white" />
+      <Card className="relative bg-card/80 border-2 border-neura-purple/20 backdrop-blur-sm overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-neura-purple/10 to-neura-purple/5"></div>
+        <CardContent className="relative p-8 text-center space-y-4">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-neura shadow-neura-glow mb-2">
+            <Trophy className="w-10 h-10 text-white" />
           </div>
-          <h3 className="text-2xl font-bold text-white">
+          <h3 className="text-2xl font-bold text-card-foreground">
             Recommended Training Mode
           </h3>
           <div className="flex justify-center">
-            <Badge className="bg-gradient-neura text-white px-8 py-3 text-lg shadow-neura-glow">
+            <Badge className="bg-gradient-neura text-white px-8 py-3 text-lg shadow-neura-glow border-0">
               {getModeName(result.recommended_mode)}
             </Badge>
           </div>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             Based on your diagnostic assessment, we think {getModeName(result.recommended_mode)} would be a great fit for your current skill level. However, feel free to explore all training modes!
           </p>
         </CardContent>
