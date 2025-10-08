@@ -22,6 +22,7 @@ interface DiagnosticResult {
   overall_recommendation: string;
   recommended_mode: string;
   motivation: string;
+  transcript?: string;
 }
 
 interface DiagnosticAnalysisProps {
@@ -162,6 +163,26 @@ export const DiagnosticAnalysis = ({ result, onContinue }: DiagnosticAnalysisPro
         </CardContent>
       </Card>
 
+      {/* Transcription Card */}
+      {result.transcript && (
+        <Card className="relative bg-card/80 border-2 border-neura-cyan/20 backdrop-blur-sm overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-neura-cyan/10 to-neura-cyan/5"></div>
+          <CardContent className="relative p-6">
+            <div className="flex items-start gap-4">
+              <div className="bg-gradient-to-br from-neura-cyan to-neura-cyan/80 rounded-full p-3 shadow-lg">
+                <Volume2 className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-card-foreground mb-3">What You Said</h3>
+                <div className="bg-background/60 rounded-lg p-4 border border-border/50">
+                  <p className="text-muted-foreground leading-relaxed">{result.transcript}</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Motivation Card */}
       <Card className="relative bg-card/80 border-2 border-neura-pink/20 backdrop-blur-sm overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-neura-pink/10 to-neura-pink/5"></div>
@@ -173,27 +194,6 @@ export const DiagnosticAnalysis = ({ result, onContinue }: DiagnosticAnalysisPro
             <h3 className="text-lg font-semibold text-card-foreground mb-2">Your Path Forward</h3>
             <p className="text-muted-foreground leading-relaxed">{result.motivation}</p>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Recommendation Card */}
-      <Card className="relative bg-card/80 border-2 border-neura-purple/20 backdrop-blur-sm overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-neura-purple/10 to-neura-purple/5"></div>
-        <CardContent className="relative p-8 text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-neura shadow-neura-glow mb-2">
-            <Trophy className="w-10 h-10 text-white" />
-          </div>
-          <h3 className="text-2xl font-bold text-card-foreground">
-            Recommended Training Mode
-          </h3>
-          <div className="flex justify-center">
-            <Badge className="bg-gradient-neura text-white px-8 py-3 text-lg shadow-neura-glow border-0">
-              {getModeName(result.recommended_mode)}
-            </Badge>
-          </div>
-          <p className="text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Based on your diagnostic assessment, we think {getModeName(result.recommended_mode)} would be a great fit for your current skill level. However, feel free to explore all training modes!
-          </p>
         </CardContent>
       </Card>
 

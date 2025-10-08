@@ -57,6 +57,7 @@ export interface DiagnosticResult {
   overall_recommendation: string;
   recommended_mode: string;
   motivation: string;
+  transcript?: string;
 }
 
 const Speech = () => {
@@ -304,7 +305,7 @@ const Speech = () => {
               throw new Error(error.message || "Failed to analyze diagnostic speech");
             }
             
-            setDiagnosticResult(result);
+            setDiagnosticResult({ ...result, transcript: finalTranscript });
             setDiagnosticState("complete");
           } else {
             // Use Supabase Edge Function for AI-powered analysis

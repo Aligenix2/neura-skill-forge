@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mic, MicOff, ArrowLeft, MessageCircle, Lightbulb, Clock, Sparkles } from "lucide-react";
@@ -21,23 +21,36 @@ export const DiagnosticRecording = ({
 }: DiagnosticRecordingProps) => {
   const [recordingTime, setRecordingTime] = useState(0);
   const MAX_TIME = 45;
+  const startTimeRef = useRef<number>(0);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let animationFrameId: number;
+    
     if (isRecording) {
-      interval = setInterval(() => {
-        setRecordingTime((prev) => {
-          if (prev >= MAX_TIME) {
-            onStopRecording();
-            return MAX_TIME;
-          }
-          return prev + 1;
-        });
-      }, 1000);
+      startTimeRef.current = Date.now();
+      
+      const updateTime = () => {
+        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+        
+        if (elapsed >= MAX_TIME) {
+          setRecordingTime(MAX_TIME);
+          onStopRecording();
+        } else {
+          setRecordingTime(elapsed);
+          animationFrameId = requestAnimationFrame(updateTime);
+        }
+      };
+      
+      animationFrameId = requestAnimationFrame(updateTime);
     } else {
       setRecordingTime(0);
     }
-    return () => clearInterval(interval);
+    
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
   }, [isRecording, onStopRecording]);
 
   const formatTime = (seconds: number) => {
