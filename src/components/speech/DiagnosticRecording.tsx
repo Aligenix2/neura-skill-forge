@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mic, MicOff, ArrowLeft } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Mic, MicOff, ArrowLeft, MessageCircle, Lightbulb, Clock, Sparkles } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 interface DiagnosticRecordingProps {
@@ -49,39 +49,59 @@ export const DiagnosticRecording = ({
   const progress = (recordingTime / MAX_TIME) * 100;
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <Button
         variant="ghost"
         onClick={onBack}
-        className="mb-4"
+        className="mb-6 hover:bg-neura-cyan/10"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back to Prompts
       </Button>
 
-      <Card className="bg-black/40 border-neura-cyan/30 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle className="text-xl text-center bg-gradient-neura bg-clip-text text-transparent">
-            Diagnostic Speech Recording
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <Card className="bg-neura-cyan/10 border-neura-cyan/30">
-            <CardContent className="p-6">
-              <p className="text-white text-lg text-center">{prompt}</p>
-            </CardContent>
-          </Card>
+      <div className="text-center mb-12">
+        <div className="inline-flex items-center space-x-2 bg-neura-purple/10 rounded-full px-4 py-2 border border-neura-purple/20 mb-6">
+          <Mic className="w-4 h-4 text-neura-purple" />
+          <span className="text-sm text-neura-purple font-medium">Ready to Record</span>
+        </div>
+        
+        <h1 className="text-3xl lg:text-4xl font-bold leading-tight mb-4">
+          Your <span className="bg-gradient-neura bg-clip-text text-transparent">Speaking Prompt</span>
+        </h1>
+      </div>
 
-          <div className="text-center space-y-4">
+      {/* Prompt Card */}
+      <Card className="relative bg-card/80 backdrop-blur-sm border-2 border-neura-cyan/20 mb-8 overflow-hidden group">
+        <div className="absolute inset-0 bg-gradient-to-br from-neura-cyan/10 to-neura-purple/5"></div>
+        <CardContent className="relative p-8">
+          <div className="flex items-start gap-4">
+            <div className="bg-gradient-to-br from-neura-cyan to-neura-cyan/80 rounded-full p-3 flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg">
+              <MessageCircle className="w-6 h-6 text-white" />
+            </div>
+            <p className="text-card-foreground text-lg leading-relaxed pt-2">{prompt}</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recording Control */}
+      <Card className="bg-card/80 backdrop-blur-sm border-2 border-neura-purple/20 mb-6">
+        <CardContent className="p-8">
+          <div className="text-center space-y-6">
             {!isRecording ? (
               <>
-                <p className="text-muted-foreground">
-                  Speak for 30-45 seconds. Be natural and express yourself clearly.
-                </p>
+                <div className="space-y-2">
+                  <p className="text-lg text-muted-foreground">
+                    Speak naturally and express yourself clearly
+                  </p>
+                  <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                    <Clock className="w-4 h-4" />
+                    <span>Aim for 30-45 seconds</span>
+                  </div>
+                </div>
                 <Button
                   onClick={onStartRecording}
                   size="lg"
-                  className="bg-gradient-neura hover:opacity-90 gap-2"
+                  className="bg-gradient-neura hover:opacity-90 gap-2 shadow-neura-glow px-8"
                 >
                   <Mic className="w-5 h-5" />
                   Start Recording
@@ -89,26 +109,26 @@ export const DiagnosticRecording = ({
               </>
             ) : (
               <>
-                <div className="space-y-2">
-                  <div className="flex justify-center items-center gap-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                    <span className="text-2xl font-bold text-white">
+                <div className="space-y-4">
+                  <div className="flex justify-center items-center gap-3">
+                    <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></div>
+                    <span className="text-3xl font-bold text-white animate-fade-in">
                       {formatTime(recordingTime)}
                     </span>
-                    <span className="text-muted-foreground">/ {formatTime(MAX_TIME)}</span>
+                    <span className="text-xl text-muted-foreground">/ {formatTime(MAX_TIME)}</span>
                   </div>
-                  <Progress value={progress} className="w-full" />
+                  <Progress value={progress} className="w-full h-2" />
+                  <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    Recording will automatically stop at 45 seconds
+                  </p>
                 </div>
-
-                <p className="text-sm text-muted-foreground">
-                  Recording will automatically stop at 45 seconds
-                </p>
 
                 <Button
                   onClick={onStopRecording}
                   size="lg"
                   variant="destructive"
-                  className="gap-2"
+                  className="gap-2 shadow-lg"
                 >
                   <MicOff className="w-5 h-5" />
                   Stop Recording
@@ -116,15 +136,38 @@ export const DiagnosticRecording = ({
               </>
             )}
           </div>
+        </CardContent>
+      </Card>
 
-          <div className="bg-black/20 border border-neura-cyan/20 rounded-lg p-4">
-            <h4 className="text-white font-semibold mb-2">Tips for a Great Recording:</h4>
-            <ul className="text-muted-foreground text-sm space-y-1">
-              <li>• Speak clearly and at a comfortable pace</li>
-              <li>• Be yourself - there are no wrong answers</li>
-              <li>• Take a breath if you need to pause</li>
-              <li>• Aim for 30-45 seconds</li>
-            </ul>
+      {/* Tips Card */}
+      <Card className="relative bg-card/80 backdrop-blur-sm border-2 border-neura-pink/20 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-neura-pink/5 to-transparent"></div>
+        <CardContent className="relative p-6">
+          <div className="flex items-start gap-4">
+            <div className="bg-gradient-to-br from-neura-pink to-neura-pink/80 rounded-full p-2.5 flex-shrink-0 shadow-lg">
+              <Lightbulb className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <h4 className="text-card-foreground font-semibold mb-3">Tips for a Great Recording</h4>
+              <ul className="text-muted-foreground text-sm space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="text-neura-pink mt-0.5">•</span>
+                  <span>Speak clearly and at a comfortable pace</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-neura-pink mt-0.5">•</span>
+                  <span>Be yourself - there are no wrong answers</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-neura-pink mt-0.5">•</span>
+                  <span>Take a breath if you need to pause</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-neura-pink mt-0.5">•</span>
+                  <span>Relax and let your personality shine through</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </CardContent>
       </Card>
