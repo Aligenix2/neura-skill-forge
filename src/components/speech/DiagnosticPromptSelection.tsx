@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RefreshCw, Mic } from "lucide-react";
+import { RefreshCw, Mic, MessageSquare, Target, Lightbulb, Users } from "lucide-react";
 
 interface DiagnosticPromptSelectionProps {
   onPromptSelect: (prompt: string) => void;
@@ -47,57 +47,82 @@ export const DiagnosticPromptSelection = ({ onPromptSelect }: DiagnosticPromptSe
     }
   };
 
+  const promptIcons = [MessageSquare, Target, Lightbulb, Users];
+  const promptColors = [
+    { border: "border-neura-purple/20 hover:border-neura-purple/40", bg: "bg-gradient-to-br from-neura-purple/10 to-neura-purple/5", icon: "bg-gradient-to-br from-neura-purple to-neura-purple/80", selected: "border-neura-purple shadow-neura-glow" },
+    { border: "border-neura-cyan/20 hover:border-neura-cyan/40", bg: "bg-gradient-to-br from-neura-cyan/10 to-neura-cyan/5", icon: "bg-gradient-to-br from-neura-cyan to-neura-cyan/80", selected: "border-neura-cyan shadow-neura-glow" },
+    { border: "border-neura-pink/20 hover:border-neura-pink/40", bg: "bg-gradient-to-br from-neura-pink/10 to-neura-pink/5", icon: "bg-gradient-to-br from-neura-pink to-neura-pink/80", selected: "border-neura-pink shadow-neura-glow" },
+    { border: "border-purple-500/20 hover:border-purple-500/40", bg: "bg-gradient-to-br from-purple-500/10 to-purple-500/5", icon: "bg-gradient-to-br from-purple-500 to-purple-600", selected: "border-purple-500 shadow-neura-glow" }
+  ];
+
   return (
-    <div className="max-w-4xl mx-auto">
-      <Card className="bg-black/40 border-neura-cyan/30 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center bg-gradient-neura bg-clip-text text-transparent">
-            Let's Start with a Quick Diagnostic
-          </CardTitle>
-          <p className="text-muted-foreground text-center mt-2">
-            Pick a prompt below and speak for 30-45 seconds. This helps us understand your speaking style.
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-4">
-            {PROMPT_SETS[currentSet].map((prompt, index) => (
-              <Card
-                key={index}
-                className={`cursor-pointer transition-all duration-200 ${
-                  selectedPrompt === prompt
-                    ? "bg-neura-cyan/20 border-neura-cyan"
-                    : "bg-black/20 border-neura-cyan/20 hover:border-neura-cyan/50"
-                }`}
-                onClick={() => handlePromptClick(prompt)}
-              >
-                <CardContent className="p-4">
-                  <p className="text-white">{prompt}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+    <div className="max-w-5xl mx-auto">
+      <div className="text-center mb-12">
+        <div className="inline-flex items-center space-x-2 bg-neura-cyan/10 rounded-full px-4 py-2 border border-neura-cyan/20 mb-6">
+          <Target className="w-4 h-4 text-neura-cyan" />
+          <span className="text-sm text-neura-cyan font-medium">Diagnostic Assessment</span>
+        </div>
+        
+        <h1 className="text-4xl lg:text-5xl font-bold leading-tight mb-6">
+          Let's Start with a <span className="bg-gradient-neura bg-clip-text text-transparent">Quick Diagnostic</span>
+        </h1>
+        
+        <p className="text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
+          Pick a prompt below and speak for 30-45 seconds. This helps us understand your speaking style.
+        </p>
+      </div>
 
-          <div className="flex justify-between items-center pt-4">
-            <Button
-              variant="outline"
-              onClick={refreshPrompts}
-              className="gap-2"
+      <div className="grid md:grid-cols-2 gap-6 mb-8">
+        {PROMPT_SETS[currentSet].map((prompt, index) => {
+          const Icon = promptIcons[index];
+          const colors = promptColors[index];
+          const isSelected = selectedPrompt === prompt;
+          
+          return (
+            <Card
+              key={index}
+              className={`relative bg-card/80 backdrop-blur-sm border-2 transition-all duration-300 cursor-pointer group overflow-hidden ${
+                isSelected 
+                  ? colors.selected 
+                  : colors.border
+              }`}
+              onClick={() => handlePromptClick(prompt)}
             >
-              <RefreshCw className="w-4 h-4" />
-              Different Prompts
-            </Button>
+              <div className={`absolute inset-0 ${colors.bg}`}></div>
+              <CardContent className="relative p-6">
+                <div className="flex items-start gap-4">
+                  <div className={`w-12 h-12 ${colors.icon} rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg`}>
+                    <Icon className="w-6 h-6 text-white" />
+                  </div>
+                  <p className="text-card-foreground leading-relaxed pt-2">{prompt}</p>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
-            <Button
-              onClick={handleContinue}
-              disabled={!selectedPrompt}
-              className="gap-2 bg-gradient-neura hover:opacity-90"
-            >
-              <Mic className="w-4 h-4" />
-              Start Recording
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex justify-center gap-4">
+        <Button
+          variant="outline"
+          onClick={refreshPrompts}
+          className="gap-2"
+          size="lg"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Different Prompts
+        </Button>
+
+        <Button
+          onClick={handleContinue}
+          disabled={!selectedPrompt}
+          className="gap-2 bg-gradient-neura hover:opacity-90 shadow-neura-glow"
+          size="lg"
+        >
+          <Mic className="w-4 h-4" />
+          Start Recording
+        </Button>
+      </div>
     </div>
   );
 };
