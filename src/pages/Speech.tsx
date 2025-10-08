@@ -365,6 +365,7 @@ const Speech = () => {
 
   const handleDiagnosticComplete = () => {
     setDiagnosticState("done");
+    setAnalysisState("idle");
   };
   return <div className="min-h-screen bg-gradient-neura-secondary">
       {/* Header */}
