@@ -130,11 +130,7 @@ TRANSCRIPTION CORRECTION:
 - Preserve student's voice and meaning
 - Do NOT rewrite entire phrases
 
-Respond with this EXACT JSON structure:
-
-FOR MUN MODE, ALSO INCLUDE:
-  "stance_score": [1-10],
-  "stance_feedback": "[Detailed explanation of country stance alignment]"
+Respond with this EXACT JSON structure (ALL fields required):
 
 {
   "mode": "${trainingMode}",
@@ -142,8 +138,8 @@ FOR MUN MODE, ALSO INCLUDE:
   "clarity_score": [1-10],
   "delivery_score": [1-10],
   "pacing_score": [1-10],
-  "stance_score": [1-10 - ONLY for MUN mode, omit for other modes],
-  "stance_feedback": "[Country stance alignment analysis - ONLY for MUN mode]",
+  "stance_score": [1-10 for MUN mode, null for debate/interview],
+  "stance_feedback": "[REQUIRED for MUN: Detailed country stance alignment analysis. null for debate/interview]",
   "pacing_category": "[Very Slow/Slightly Slow/Ideal/Slightly Fast/Very Fast]",
   "pacing_evidence": "[Student-friendly pacing explanation, NO raw WPM]",
   "pacing_advice": "[Specific tips based on pace]",
@@ -169,6 +165,10 @@ FOR MUN MODE, ALSO INCLUDE:
   "corrected_speech": "[corrected version preserving voice]",
   "recommendationLevel": "[Beginner/Intermediate/Advanced]"
 }
+
+CRITICAL: 
+- For MUN mode: stance_score and stance_feedback are MANDATORY and must contain real analysis
+- For debate/interview modes: Set stance_score to null and stance_feedback to null
 
 Be encouraging, specific, constructive. Ages 12-18. End with motivation.`;
 
