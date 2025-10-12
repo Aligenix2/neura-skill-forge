@@ -266,22 +266,21 @@ const Speech = () => {
         try {
           const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
           
-          // Use enhanced transcription with Whisper.js
+          // Use the real-time transcript
           let finalTranscript = transcript.trim();
-          if (finalTranscript.length < 10) {
-            console.log("Using Whisper.js for better transcription...");
-            finalTranscript = await transcribeAudio(audioBlob);
-          }
           
-          console.log("Final transcript for analysis:", finalTranscript);
-          if (finalTranscript.length < 10) {
+          console.log("Final transcript for analysis:", finalTranscript, "Length:", finalTranscript.length);
+          
+          // If transcript is too short, inform the user
+          if (finalTranscript.length < 5) {
+            console.error("Transcript too short for analysis");
             toast({
               title: "No speech detected",
               description: "Please try recording again and speak more clearly. Make sure your microphone is working.",
               variant: "destructive"
             });
             if (isDiagnostic) {
-              setDiagnosticState("recording");
+              setDiagnosticState("prompt-selection");
             } else {
               setAnalysisState("idle");
             }
