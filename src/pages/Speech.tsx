@@ -2,7 +2,6 @@ import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Mic, MicOff, Play, Pause, RotateCcw, Zap } from "lucide-react";
-import { Link } from "react-router-dom";
 import { SpeechModeSelection } from "@/components/speech/SpeechModeSelection";
 import { TopicSelection } from "@/components/speech/TopicSelection";
 import { MUNSetup } from "@/components/speech/MUNSetup";
@@ -388,12 +387,17 @@ const Speech = () => {
             </nav>
 
             <div className="flex items-center space-x-4">
-              <Link to="/dashboard">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Dashboard
-                </Button>
-              </Link>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => {
+                  setMode(null);
+                  setSelectedTopic("");
+                }}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Mode Selection
+              </Button>
             </div>
           </div>
         </div>
