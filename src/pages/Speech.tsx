@@ -440,7 +440,7 @@ const Speech = () => {
         {diagnosticState === "done" && mode && !selectedTopic && analysisState === "idle" && mode === "mun" && (
           <MUNSetup 
             onSetupComplete={setSelectedTopic} 
-            onBack={() => setMode(null)} 
+            onBack={() => setSelectedTopic("")} 
           />
         )}
 
@@ -448,7 +448,7 @@ const Speech = () => {
           <TopicSelection 
             mode={mode} 
             onTopicSelect={setSelectedTopic} 
-            onBack={() => setMode(null)} 
+            onBack={() => setSelectedTopic("")} 
           />
         )}
 
