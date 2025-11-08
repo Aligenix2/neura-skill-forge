@@ -393,6 +393,8 @@ const Speech = () => {
                 onClick={() => {
                   setMode(null);
                   setSelectedTopic("");
+                  setDiagnosticState("done");
+                  setAnalysisState("idle");
                 }}
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
